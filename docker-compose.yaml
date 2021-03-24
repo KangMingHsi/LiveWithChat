@@ -1,0 +1,42 @@
+version: "3"
+
+services:
+  vue:
+    build:
+      context: ./containers
+      dockerfile: vue_dockerfile
+    container_name: my_vue
+    volumes:
+      - ./frontend:/vue
+    ports:
+      - 8080:8080
+    tty: true
+  golang:
+    image: golang:latest
+    container_name: go_gin
+    volumes:
+      - ./backend:/go/src/server
+    ports:
+      - 8000:8080
+    tty: true
+
+  cache:
+    image: redis:latest
+    container_name: cache
+    ports:
+      - 6379:6379
+
+  database:
+    image: postgres:latest
+    container_name: relation_db_server
+    environment:
+      POSTGRES_USER: livewithchat
+      POSTGRES_PASSWORD: default
+      POSTGRES_DB: livewithchat
+    ports:
+      - 5432:5432
+    volumes:
+      - database-data:/var/lib/postgresql/data/
+
+volumes:
+  database-data:

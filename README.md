@@ -9,4 +9,4 @@ Learning most of the tools, system design and TDD...
 2. Chat service
 3. Live stream service
 4. frontend - vue.js
-5. more features
+5. more features (maybe subscribe charge...)
