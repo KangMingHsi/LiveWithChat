@@ -1,18 +1,19 @@
 package authentication
 
-import "github.com/dgrijalva/jwt-go"
-
-// UserClaims is for jwt to create token.
-type UserClaims struct {
-	jwt.StandardClaims
-	ID  MemberID
+// UserClaims is to store data of token
+type UserClaims interface {
+	// Get user id
+	GetID () MemberID
 }
 
-// TokenService is to generate and verify token.
-type TokenService interface {
+// TokenManager is to generate and verify token.
+type TokenManager interface {
 	// Generate creates token.
-	Generate(user *User) (string, error)
+	Generate(id MemberID) (string, string, error)
 
 	// Verify checks token.
-	Verify(accessToken string) (*UserClaims, error)
+	Verify(accessToken string) (UserClaims, error)
+
+	// Refresh accessToken.
+	Refresh(refreshToken string) (string, string, error)
 }

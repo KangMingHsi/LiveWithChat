@@ -5,7 +5,7 @@ services:
     build:
       context: ./containers
       dockerfile: vue_dockerfile
-    container_name: my_vue
+    container_name: vue_develop
     volumes:
       - ./frontend:/vue
     ports:
@@ -13,22 +13,41 @@ services:
     tty: true
   golang:
     image: golang:latest
-    container_name: go_gin
+    container_name: go_develop
     volumes:
       - ./backend:/go/src/server
     ports:
       - 8000:8080
     tty: true
 
+  authentication:
+    image: golang:latest
+    container_name: auth_service
+    networks:
+      - backend
+    environment:
+      - PORT=8080
+      - SECRET=secret
+    volumes:
+      - ./backend/authentication:/go/src/authentication
+    ports:
+      - 8000:8080
+    tty: true
+    command: "/go/src/authentication/launch.sh"
+
   cache:
     image: redis:latest
     container_name: cache
+    networks:
+      - backend
     ports:
       - 6379:6379
 
   database:
     image: postgres:latest
     container_name: relation_db_server
+    networks:
+      - backend
     environment:
       POSTGRES_USER: livewithchat
       POSTGRES_PASSWORD: default
@@ -38,5 +57,8 @@ services:
     volumes:
       - database-data:/var/lib/postgresql/data/
 
+networks:
+  frontend:
+  backend:
 volumes:
   database-data:

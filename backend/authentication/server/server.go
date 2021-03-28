@@ -23,17 +23,10 @@ func New(au auth.Service) *Server {
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
-	e.Use(accessControl)
 
 	h := authHandler{s: au}
 	h.addGroup(e)
 
 	s.Host = e
 	return s
-}
-
-func accessControl(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error{
-		return next(c)
-	}
 }

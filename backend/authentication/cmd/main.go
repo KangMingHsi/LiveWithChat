@@ -28,6 +28,7 @@ func main() {
 
 	var (
 		users authentication.UserRepository
+		token authentication.TokenManager
 	)
 
 	if *inmemory {
@@ -36,11 +37,13 @@ func main() {
 		// TODO: postgresl
 	}
 
-	var js authentication.TokenService
-	js = jwt.NewJWTService(secretKey, time.Hour * 6)
+	token = jwt.NewTokenManager(
+		secretKey,
+		time.Second * 5,
+		time.Second * 20)
 
 	var au auth.Service
-	au = auth.NewService(users, js)
+	au = auth.NewService(users, token)
 
 	srv := server.New(au)
 	srv.Host.Logger.Fatal(

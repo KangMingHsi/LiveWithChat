@@ -18,41 +18,62 @@ func NewLoggingService(logger log.Logger, s Service) Service {
 	return &loggingService{logger, s}
 }
 
-func (s *loggingService) Login(id authentication.MemberID, password string) (token string, err error) {
+func (s *loggingService) Login(id authentication.MemberID, password string, ipAddr string) (accessToken, refreshToken string, err error) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "Login",
-			"id", id,
 			"took", time.Since(begin),
 			"err", err,
 		)
 	}(time.Now())
 
-	return s.next.Login(id, password)
+	return s.next.Login(id, password, ipAddr)
 }
 
-func (s *loggingService) Logout(id authentication.MemberID) (err error) {
+func (s *loggingService) Logout(accessToken string) (err error) {
 	defer func(begin time.Time) {
 		s.logger.Log(
-			"method", "Login",
-			"id", id,
+			"method", "Logout",
 			"took", time.Since(begin),
 			"err", err,
 		)
 	}(time.Now())
 
-	return s.next.Logout(id)
+	return s.next.Logout(accessToken)
 }
 
 func (s *loggingService) Register(password string) (id authentication.MemberID, err error) {
 	defer func(begin time.Time) {
 		s.logger.Log(
-			"method", "Login",
-			"id", id,
+			"method", "Register",
 			"took", time.Since(begin),
 			"err", err,
 		)
 	}(time.Now())
 
 	return s.next.Register(password)
+}
+
+func (s *loggingService) CheckAndRefresh(accessToken, refreshToken string) (newAccessToken, newRefreshToken string, err error) {
+	defer func(begin time.Time) {
+		s.logger.Log(
+			"method", "CheckOrRefresh",
+			"took", time.Since(begin),
+			"err", err,
+		)
+	}(time.Now())
+
+	return s.next.CheckAndRefresh(accessToken, refreshToken)
+}
+
+func (s *loggingService) ChangePassword(newPassword, accessToken string) (err error) {
+	defer func(begin time.Time) {
+		s.logger.Log(
+			"method", "ChangePassword",
+			"took", time.Since(begin),
+			"err", err,
+		)
+	}(time.Now())
+
+	return s.next.ChangePassword(newPassword, accessToken)
 }
