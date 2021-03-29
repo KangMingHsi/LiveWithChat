@@ -11,14 +11,31 @@ services:
     ports:
       - 8080:8080
     tty: true
+
   golang:
     image: golang:latest
     container_name: go_develop
+    networks:
+      - backend
     volumes:
       - ./backend:/go/src/server
     ports:
       - 8000:8080
     tty: true
+
+  gateway:
+    image: golang:latest
+    container_name: api_gateway
+    networks:
+      - backend
+    environment:
+      - PORT=8080
+    volumes:
+      - ./backend/gateway:/go/src/gateway
+    ports:
+      - 8000:8080
+    tty: true
+    command: "/go/src/gateway/launch.sh"
 
   authentication:
     image: golang:latest
@@ -30,8 +47,6 @@ services:
       - SECRET=secret
     volumes:
       - ./backend/authentication:/go/src/authentication
-    ports:
-      - 8000:8080
     tty: true
     command: "/go/src/authentication/launch.sh"
 
@@ -40,8 +55,6 @@ services:
     container_name: cache
     networks:
       - backend
-    ports:
-      - 6379:6379
 
   database:
     image: postgres:latest
@@ -52,8 +65,6 @@ services:
       POSTGRES_USER: livewithchat
       POSTGRES_PASSWORD: default
       POSTGRES_DB: livewithchat
-    ports:
-      - 5432:5432
     volumes:
       - database-data:/var/lib/postgresql/data/
 

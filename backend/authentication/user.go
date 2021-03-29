@@ -3,7 +3,6 @@ package authentication
 import (
 	"errors"
 	"fmt"
-	"net"
 	"strings"
 	"time"
 
@@ -20,7 +19,7 @@ type User struct {
 	HashedPassword    string
 	IsOnline bool
 	IsBlocked bool
-	IpAddr  net.IPAddr
+	IpAddr  string
 	LastLoginTime time.Time
 }
 
@@ -35,7 +34,7 @@ func NewUser(id MemberID, password string) (*User, error) {
 		HashedPassword: string(hashedPassword),
 		IsOnline: false,
 		IsBlocked: false,
-		IpAddr: net.IPAddr{},
+		IpAddr: "",
 		LastLoginTime: time.Now(),
 	}
 	return user, nil
@@ -62,9 +61,7 @@ func (user *User) Clone() *User {
 // Login changes user to online state.
 func (user *User) Login(ipAddr string) error {
 	user.IsOnline = true
-	user.IpAddr = net.IPAddr{
-		IP: net.ParseIP(ipAddr),
-	}
+	user.IpAddr = ipAddr
 	user.LastLoginTime = time.Now()
 	return nil
 }
@@ -73,6 +70,18 @@ func (user *User) Login(ipAddr string) error {
 func (user *User) Logout() error {
 	user.IsOnline = false
 	return nil
+}
+
+// Convert to map type
+func (user *User) ConvertToMap() map[string]interface{} {
+	return map[string]interface{} {
+		"ID": user.ID,
+		"HashedPassword": user.HashedPassword,
+		"IsOnline": user.IsOnline,
+		"IsBlocked": user.IsBlocked,
+		"IpAddr": user.IpAddr,
+		"LastLoginTime": user.LastLoginTime,
+	}
 }
 
 // Change user password.

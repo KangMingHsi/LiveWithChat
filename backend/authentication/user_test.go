@@ -1,7 +1,6 @@
 package authentication
 
 import (
-	"net"
 	"testing"
 )
 
@@ -55,12 +54,8 @@ func TestLogin(t *testing.T) {
 	if !user.IsOnline {
 		t.Errorf("Login failed")
 	}
-	ipAddr, err := net.ResolveIPAddr("ip", ipString)
-	if err != nil {
-		t.Errorf("%v", err)
-	}
 
-	if !user.IpAddr.IP.Equal(ipAddr.IP) {
+	if user.IpAddr != ipString {
 		t.Errorf("Ip address is not correct")
 	}
 }
