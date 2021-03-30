@@ -74,3 +74,48 @@ func TestLogout(t *testing.T) {
 		t.Errorf("Logout failed")
 	}
 }
+
+func TestClone(t *testing.T) {
+	var (
+		user *User
+		id = NextMemberID()
+		password = "1234"
+	)
+
+	user, err := NewUser(id, password)
+	if err != nil {
+		t.Errorf("%v", err)
+	}
+
+	cloneUser := user.Clone()
+	if (cloneUser.HashedPassword != user.HashedPassword ||
+			cloneUser.ID != user.ID ||
+			cloneUser.IsOnline != user.IsOnline ||
+			cloneUser.IsBlocked != user.IsBlocked ||
+			cloneUser.LastLoginTime != user.LastLoginTime ||
+			cloneUser.IpAddr != user.IpAddr) {
+		t.Errorf("%s", "clone should create identical instance")
+	}
+}
+
+func TestConvertToMap(t *testing.T) {
+	var (
+		user *User
+		id = NextMemberID()
+		password = "1234"
+	)
+
+	user, err := NewUser(id, password)
+	if err != nil {
+		t.Errorf("%v", err)
+	}
+
+	userMap := user.ConvertToMap()
+	if _, ok := userMap["ID"]; !ok {
+		t.Errorf("Failed to convert. No ID")
+	}
+
+	if v, ok := userMap["ID"].(MemberID); !ok || v != id {
+		t.Errorf("Failed to convert. Wrong type or value")
+	}
+}

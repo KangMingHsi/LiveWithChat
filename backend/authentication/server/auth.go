@@ -81,7 +81,7 @@ func (h *authHandler) checkAndRefresh(c echo.Context) error {
 	return c.String(http.StatusOK, "Successfully check and refresh")
 }
 
-func (h *authHandler) changePassword (c echo.Context) error {
+func (h *authHandler) changePassword(c echo.Context) error {
 	accessToken, err := h.refreshImpl(c)
 	if err != nil {
 		return toEchoHttpError(err)
