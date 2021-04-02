@@ -9,9 +9,24 @@
         <h2 class="subtitle">
           Enjoy videos and live streams here
         </h2>
-        <div class="button-block">
-          <button class="button is-xl is-dark">Sign Up to Browse Subscribers</button>
-        </div>
+        <v-dialog
+         v-model="showRegister"
+         width="500"
+        >
+          <template v-slot:activator="{ on, attrs }">
+            <div class="button-block">
+              <button class="button is-xl is-dark"
+               v-bind="attrs"
+               v-on="on"
+              >
+                Sign Up to Browse Subscribers
+              </button>
+            </div>
+          </template>
+          <RegisterDialog
+            ref="registerDialog"
+          />
+        </v-dialog>
       </div>
     </div>
   </section>
@@ -21,10 +36,23 @@
 
 <script>
 import WatchesList from '@/components/WatchesList';
+import RegisterDialog from '../components/RegisterDialog'
+
 export default {
   name: 'home',
   components: {
-    WatchesList
+    WatchesList,
+    RegisterDialog
+  },
+  data() {
+    return {
+      showRegister: false
+    }
+  },
+  watch: {
+    showRegister: function(val) {
+      val || this.$refs.registerDialog.clear()
+    }
   }
 }
 </script>
@@ -41,11 +69,11 @@ export default {
   .hero-body .title {
     text-shadow: 4px 4px 4px rgba(0, 0, 0, 0.6);
     padding: 40px 0 20px 0;
-    font-size: 60px;
+    font-size: 60px !important;
   }
   .subtitle {
     text-shadow: 4px 4px 4px rgba(0, 0, 0, 0.7);
-    font-size: 30px;
+    font-size: 30px !important;
   }
   .button-block {
     text-align: center;

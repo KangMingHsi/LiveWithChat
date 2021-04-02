@@ -6,6 +6,8 @@ services:
       context: ./containers
       dockerfile: vue_dockerfile
     container_name: vue_develop
+    networks:
+      - frontend
     volumes:
       - ./frontend:/vue
     ports:
@@ -27,6 +29,7 @@ services:
     image: golang:latest
     container_name: api_gateway
     networks:
+      - frontend
       - backend
     environment:
       - PORT=8080

@@ -16,20 +16,48 @@
       <router-link to="/about" class="navbar-item">About</router-link>
     </div>
     <div class="navbar-end">
-      <div class="navbar-item">
-        <div class="buttons">
-          <a class="button is-dark">
-            <strong>Sign In</strong>
-          </a>
-        </div>
-      </div>
+      <v-dialog
+       v-model="showLogin"
+       width="500"
+      >
+        <template v-slot:activator="{ on, attrs }">
+          <div class="buttons"
+           v-bind="attrs"
+           v-on="on"
+          >
+            <a class="button is-dark">
+              <strong>Sign In</strong>
+            </a>
+          </div>
+        </template>
+        <LoginDialog
+          ref="loginDialog"
+        />
+      </v-dialog>
     </div>
   </div>
 </nav>
 </template>
 <script>
+import LoginDialog from '../LoginDialog'
+
 export default {
-    name: 'Nav'
+  name: 'Nav',
+  components:{
+    LoginDialog
+  },
+  data() {
+    return {
+      showLogin: false,
+    }
+  },
+  watch: {
+    showLogin: function(val) {
+      val || this.$refs.loginDialog.clear()
+    },
+  },
+  methods: {
+  },
 }
 </script>
 <style lang="scss" scoped>
