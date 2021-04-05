@@ -3,35 +3,41 @@ package auth
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"authentication"
 )
 
-var password = "1234"
-var newPassword = "5678"
+const(
+	password = "1234"
+	newPassword = "5678"
+	email = "test@livewithchat.com"
+	nickname = "test"
+	gender = "male"
+)
+
 var repository mockUserRepository
+var cache mockUserRepository
 var tokenManager mockTokenManager
 var claim mockUserClaim
-var s = NewService(&repository, &tokenManager)
+var s = NewService(&repository, &cache, &tokenManager)
 
 func TestRegister(t *testing.T) {
-	id, err := s.Register(password)
-	claim.id = id
+	id, err := s.Register(
+		email, gender, nickname, password)
+
+	claim.email = email
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	user, err := repository.Find(id)
+	user, err := repository.Find(email)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	if user.ID != id {
 		t.Errorf("user id is not the same %s != %s", user.ID, id)
-	}
-
-	if !user.IsCorrectPassword(password) {
-		t.Errorf("password is wrong")
 	}
 }
 
@@ -41,7 +47,7 @@ func TestLogin(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	accessToken, refreshToken, err := s.Login(user.ID, password, "")
+	accessToken, refreshToken, err := s.Login(user.Email, password, "")
 	if err != nil {
 		t.Errorf("%v", err)
 	}
@@ -60,7 +66,14 @@ func TestLogin(t *testing.T) {
 }
 
 func TestCheckAccessToken(t *testing.T) {
-	accessToken, refreshToken, err := s.CheckAndRefresh("access", "refresh")
+	err := s.Check("access")
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestRefreshToken(t *testing.T) {
+	accessToken, refreshToken, err := s.Refresh("refresh")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -70,21 +83,6 @@ func TestCheckAccessToken(t *testing.T) {
 	}
 
 	if refreshToken != "refresh" {
-		t.Errorf("refreshToken is wrong")
-	}
-}
-
-func TestRefreshToken(t *testing.T) {
-	accessToken, refreshToken, err := s.CheckAndRefresh("invalidAccess", "refresh")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if accessToken != "newAccess" {
-		t.Errorf("accessToken is wrong")
-	}
-
-	if refreshToken != "newRefresh" {
 		t.Errorf("refreshToken is wrong")
 	}
 }
@@ -102,7 +100,7 @@ func TestChangePassword(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	accessToken, _, err := s.Login(user.ID, password, "")
+	accessToken, _, err := s.Login(user.Email, password, "")
 	if err != nil {
 		t.Errorf("%v", err)
 	}
@@ -112,7 +110,7 @@ func TestChangePassword(t *testing.T) {
 		t.Errorf("%v", err)
 	}
 
-	if user.IsCorrectPassword(password) {
+	if err := user.Login(newPassword, "127.0.0.1"); err != nil {
 		t.Errorf("password is %s, not %s", newPassword, password)
 	}
 }
@@ -126,7 +124,7 @@ func (r *mockUserRepository) Store(c *authentication.User) error {
 	return nil
 }
 
-func (r *mockUserRepository) Find(id authentication.MemberID) (*authentication.User, error) {
+func (r *mockUserRepository) Find(email string) (*authentication.User, error) {
 	if r.user != nil {
 		return r.user, nil
 	}
@@ -139,25 +137,34 @@ func (r *mockUserRepository) FindAll() []*authentication.User {
 
 type mockTokenManager struct {}
 
-func (s *mockTokenManager) Generate(id authentication.MemberID) (string, string, error) {
+func (s *mockTokenManager) Generate(
+		id authentication.MemberID, email, role string) (string, string, error) {
 	return "access", "refresh", nil
 }
 
-func (s *mockTokenManager) Verify(accessToken string) (authentication.UserClaims, error) {
-	if accessToken != "access" && accessToken != "refresh" {
-		return &claim, errors.New("token is invalid")
+func (s *mockTokenManager) Verify(accessToken string, isRefresh bool) (authentication.UserClaims, error) {
+	if isRefresh && accessToken != "refresh" {
+		return &claim, errors.New("refresh token is invalid")
+	}
+	if !isRefresh && accessToken != "access"{
+		return &claim, errors.New("access token is invalid")
 	}
 	return &claim, nil
 }
 
-func (s *mockTokenManager) Refresh(refreshToken string) (string, string, error) {
-	return "newAccess", "newRefresh", nil
-}
-
 type mockUserClaim struct {
-	id authentication.MemberID
+	email string
 }
 
-func (c *mockUserClaim) GetID () authentication.MemberID {
-	return c.id
+func (c *mockUserClaim) GetKey() interface{} {
+	return c.email
+}
+
+func (c *mockUserClaim) ConvertToMap() map[string]interface{}{
+	return map[string]interface{}{
+		"UserID": authentication.MemberID("0"),
+		"Email": email,
+		"Role": "normal",
+		"IssuedAt": time.Now().Unix(),
+	}
 }

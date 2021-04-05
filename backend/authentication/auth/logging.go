@@ -18,7 +18,7 @@ func NewLoggingService(logger log.Logger, s Service) Service {
 	return &loggingService{logger, s}
 }
 
-func (s *loggingService) Login(id authentication.MemberID, password string, ipAddr string) (accessToken, refreshToken string, err error) {
+func (s *loggingService) Login(email string, password string, ipAddr string) (accessToken, refreshToken string, err error) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "Login",
@@ -27,7 +27,7 @@ func (s *loggingService) Login(id authentication.MemberID, password string, ipAd
 		)
 	}(time.Now())
 
-	return s.next.Login(id, password, ipAddr)
+	return s.next.Login(email, password, ipAddr)
 }
 
 func (s *loggingService) Logout(accessToken string) (err error) {
@@ -42,7 +42,7 @@ func (s *loggingService) Logout(accessToken string) (err error) {
 	return s.next.Logout(accessToken)
 }
 
-func (s *loggingService) Register(password string) (id authentication.MemberID, err error) {
+func (s *loggingService) Register(email, gender, nickname, password string) (id authentication.MemberID, err error) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "Register",
@@ -51,19 +51,31 @@ func (s *loggingService) Register(password string) (id authentication.MemberID, 
 		)
 	}(time.Now())
 
-	return s.next.Register(password)
+	return s.next.Register(email, gender, nickname, password)
 }
 
-func (s *loggingService) CheckAndRefresh(accessToken, refreshToken string) (newAccessToken, newRefreshToken string, err error) {
+func (s *loggingService) Check(accessToken string) (err error) {
 	defer func(begin time.Time) {
 		s.logger.Log(
-			"method", "CheckOrRefresh",
+			"method", "Check",
 			"took", time.Since(begin),
 			"err", err,
 		)
 	}(time.Now())
 
-	return s.next.CheckAndRefresh(accessToken, refreshToken)
+	return s.next.Check(accessToken)
+}
+
+func (s *loggingService) Refresh(refreshToken string) (newAccessToken, newRefreshToken string, err error) {
+	defer func(begin time.Time) {
+		s.logger.Log(
+			"method", "Refresh",
+			"took", time.Since(begin),
+			"err", err,
+		)
+	}(time.Now())
+
+	return s.next.Refresh(refreshToken)
 }
 
 func (s *loggingService) ChangePassword(newPassword, accessToken string) (err error) {

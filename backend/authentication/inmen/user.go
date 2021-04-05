@@ -7,20 +7,20 @@ import (
 
 type userRepository struct {
 	mtx    sync.RWMutex
-	users map[authentication.MemberID]*authentication.User
+	users map[string]*authentication.User
 }
 
 func (r *userRepository) Store(user *authentication.User) error {
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
-	r.users[user.ID] = user
+	r.users[user.Email] = user
 	return nil
 }
 
-func (r *userRepository) Find(id authentication.MemberID) (*authentication.User, error) {
+func (r *userRepository) Find(email string) (*authentication.User, error) {
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
-	if val, ok := r.users[id]; ok {
+	if val, ok := r.users[email]; ok {
 		return val, nil
 	}
 	return nil, authentication.ErrUnknownUser
@@ -39,6 +39,6 @@ func (r *userRepository) FindAll() []*authentication.User {
 // NewUserRepository returns a new instance of a in-memory user repository.
 func NewUserRepository () authentication.UserRepository {
 	return &userRepository{
-		users: make(map[authentication.MemberID]*authentication.User),
+		users: make(map[string]*authentication.User),
 	}
 }

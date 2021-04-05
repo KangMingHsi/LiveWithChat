@@ -23,9 +23,9 @@ func (r *userRepository) Store(user *authentication.User) error {
 	)
 }
 
-func (r *userRepository) Find(id authentication.MemberID) (*authentication.User, error) {
+func (r *userRepository) Find(email string) (*authentication.User, error) {
 	var user *authentication.User
-	err := r.uCache.Get(r.ctx, r.prefix + string(id), &user)
+	err := r.uCache.Get(r.ctx, r.prefix + email, &user)
 	if err != nil {
 		return nil, authentication.ErrUnknownUser
 	}

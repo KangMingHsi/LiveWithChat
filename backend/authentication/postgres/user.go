@@ -4,17 +4,61 @@ import (
 	"authentication"
 	"time"
 
+	"github.com/lib/pq"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
 type user struct {
 	ID  		authentication.MemberID `gorm:"primaryKey"`
+
+	Email string `gorm:"unique;index"`
+	Nickname string
+	Gender            string
 	HashedPassword    string
+	Role		      string
 	IsOnline bool `gorm:"default:false"`
 	IsBlocked bool `gorm:"default:false"`
-	IpAddr  string
-	LastLoginTime time.Time
+	IpAddr  pq.StringArray `gorm:"type:text[];default:{}"`
+
+	LimitationPeriod time.Time
+	LoginTime time.Time
+}
+
+func toUserDB(u *authentication.User) *user {
+	return &user{
+		ID: u.ID,
+
+		Email: u.Email,
+		Gender: u.Gender,
+		Nickname: u.Nickname,
+		HashedPassword: u.HashedPassword,
+		Role: u.Role,
+		IsOnline: u.IsOnline,
+		IsBlocked: u.IsBlocked,
+		IpAddr: u.IpAddr,
+
+		LimitationPeriod: u.LimitationPeriod,
+		LoginTime: u.LoginTime,
+	}
+}
+
+func toUser(u *user) *authentication.User {
+	return &authentication.User{
+		ID: u.ID,
+
+		Email: u.Email,
+		Gender: u.Gender,
+		Nickname: u.Nickname,
+		HashedPassword: u.HashedPassword,
+		Role: u.Role,
+		IsOnline: u.IsOnline,
+		IsBlocked: u.IsBlocked,
+		IpAddr: []string(u.IpAddr),
+
+		LimitationPeriod: u.LimitationPeriod,
+		LoginTime: u.LoginTime,
+	}
 }
 
 type userRepository struct {
@@ -24,22 +68,30 @@ type userRepository struct {
 func (r *userRepository) Store(u *authentication.User) error {
 	r.db.Model(&user{}).Clauses(clause.OnConflict{
 		UpdateAll: true,
-	}).Create(u.ConvertToMap())
+	}).Create(toUserDB(u))
 	return nil
 }
 
-func (r *userRepository) Find(id authentication.MemberID) (*authentication.User, error) {
-	var u *authentication.User
-	result := r.db.Model(&user{}).First(&u, "id = ?", id)
+func (r *userRepository) Find(email string) (*authentication.User, error) {
+	var uRow *user
+
+	result := r.db.Model(&user{}).First(&uRow, "email = ?", email)
 	if result.Error != nil {
 		return nil, authentication.ErrUnknownUser
 	}
-	return u, nil
+
+	return toUser(uRow), nil
 }
 
 func (r *userRepository) FindAll() []*authentication.User {
-	us := []*authentication.User{}
-	r.db.Model(&user{}).Find(&us)
+	uRows := []*user{}
+	r.db.Model(&user{}).Find(&uRows)
+
+	us := make([]*authentication.User, len(uRows))
+	for index, uRow := range uRows {
+		us[index] = toUser(uRow)
+	}
+
 	return us
 }
 

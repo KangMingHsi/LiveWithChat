@@ -23,14 +23,14 @@ func NewInstrumentingService(counter metrics.Counter, latency metrics.Histogram,
 	}
 }
 
-func (s *instrumentingService) Login(id authentication.MemberID, password string, ipAddr string) (
+func (s *instrumentingService) Login(email string, password string, ipAddr string) (
 		accessToken string, refreshToken string, err error) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "Login").Add(1)
 		s.requestLatency.With("method", "Login").Observe(time.Since(begin).Seconds())
 	}(time.Now())
 
-	return s.next.Login(id, password, ipAddr)
+	return s.next.Login(email, password, ipAddr)
 }
 
 func (s *instrumentingService) Logout(accessToken string) (err error) {
@@ -42,22 +42,31 @@ func (s *instrumentingService) Logout(accessToken string) (err error) {
 	return s.next.Logout(accessToken)
 }
 
-func (s *instrumentingService) Register(password string) (id authentication.MemberID, err error) {
+func (s *instrumentingService) Register(email, gender, nickname, password string) (id authentication.MemberID, err error) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "Register").Add(1)
 		s.requestLatency.With("method", "Register").Observe(time.Since(begin).Seconds())
 	}(time.Now())
 
-	return s.next.Register(password)
+	return s.next.Register(email, gender, nickname, password)
 }
 
-func (s *instrumentingService) CheckAndRefresh(accessToken, refreshToken string) (newAccessToken, newRefreshToken string, err error) {
+func (s *instrumentingService) Check(accessToken string) (err error) {
 	defer func(begin time.Time) {
-		s.requestCount.With("method", "CheckOrRefresh").Add(1)
-		s.requestLatency.With("method", "CheckOrRefresh").Observe(time.Since(begin).Seconds())
+		s.requestCount.With("method", "Check").Add(1)
+		s.requestLatency.With("method", "Check").Observe(time.Since(begin).Seconds())
 	}(time.Now())
 
-	return s.next.CheckAndRefresh(accessToken, refreshToken)
+	return s.next.Check(accessToken)
+}
+
+func (s *instrumentingService) Refresh(refreshToken string) (newAccessToken, newRefreshToken string, err error) {
+	defer func(begin time.Time) {
+		s.requestCount.With("method", "Refresh").Add(1)
+		s.requestLatency.With("method", "Refresh").Observe(time.Since(begin).Seconds())
+	}(time.Now())
+
+	return s.next.Refresh(refreshToken)
 }
 
 func (s *instrumentingService) ChangePassword(newPassword, accessToken string) (err error) {

@@ -3,7 +3,9 @@ package server
 import (
 	"authentication"
 	"authentication/auth"
+	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 )
@@ -18,12 +20,22 @@ func (h *authHandler) addGroup(e *echo.Echo) {
 	g.POST("/login", h.login)
 	g.POST("/logout", h.logout)
 	g.POST("/change-password", h.changePassword)
-	g.POST("/check-and-refresh", h.checkAndRefresh)
+	g.POST("/check", h.check)
+	g.POST("/refresh", h.refresh)
 }
 
 func (h *authHandler) register(c echo.Context) error {
-	password := c.FormValue("password")
-	id, err := h.s.Register(password)
+	values, err := c.FormParams()
+	if err != nil {
+		return toEchoHttpError(err)
+	}
+
+	email := values.Get("email")
+	gender := values.Get("gender")
+	nickname := values.Get("nickname")
+	password := values.Get("password")
+	
+	id, err := h.s.Register(email, gender, nickname, password)
 	if err != nil {
 		return toEchoHttpError(err)
 	}
@@ -32,11 +44,16 @@ func (h *authHandler) register(c echo.Context) error {
 }
 
 func (h *authHandler) login(c echo.Context) error {
-	id := c.FormValue("user_id")
-	password := c.FormValue("password")
+	values, err := c.FormParams()
+	if err != nil {
+		return toEchoHttpError(err)
+	}
+
+	email := values.Get("email")
+	password := values.Get("password")
 	ipAddr := c.RealIP()
 	accessToken, refreshToken, err := h.s.Login(
-		authentication.MemberID(id),
+		email,
 		password,
 		ipAddr,
 	)
@@ -45,25 +62,18 @@ func (h *authHandler) login(c echo.Context) error {
 		return toEchoHttpError(err)
 	}
 
-	c.SetCookie(&http.Cookie{
-		Name: "AccessToken",
-		Value: accessToken,
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"AccessToken": accessToken,
+		"RefreshToken": refreshToken,
 	})
-
-	c.SetCookie(&http.Cookie{
-		Name: "RefreshToken",
-		Value: refreshToken,
-	})
-
-	return c.String(http.StatusOK, "Successfully login")
 }
 
 func (h *authHandler) logout(c echo.Context) error {
-	accessToken, err := h.refreshImpl(c)
+	accessToken, err := h.getToken(c)
 	if err != nil {
 		return toEchoHttpError(err)
 	}
-
+	
 	err = h.s.Logout(accessToken)
 	if err != nil {
 		return toEchoHttpError(err)
@@ -72,17 +82,39 @@ func (h *authHandler) logout(c echo.Context) error {
 	return c.String(http.StatusOK, "Successfully logout")
 }
 
-func (h *authHandler) checkAndRefresh(c echo.Context) error {
-	_, err := h.refreshImpl(c)
+func (h *authHandler) check(c echo.Context) error {
+	accessToken, err := h.getToken(c)
 	if err != nil {
 		return toEchoHttpError(err)
 	}
 
-	return c.String(http.StatusOK, "Successfully check and refresh")
+	err = h.s.Check(accessToken)
+	if err != nil {
+		return toEchoHttpError(err)
+	}
+
+	return c.String(http.StatusOK, "Is valid")
+}
+
+func (h *authHandler) refresh(c echo.Context) error {
+	refreshToken, err := h.getToken(c)
+	if err != nil {
+		return toEchoHttpError(err)
+	}
+
+	newAccessToken, newRefreshToken, err := h.s.Refresh(refreshToken)
+	if err != nil {
+		return toEchoHttpError(err)
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"AccessToken": newAccessToken,
+		"RefreshToken": newRefreshToken,
+	})
 }
 
 func (h *authHandler) changePassword(c echo.Context) error {
-	accessToken, err := h.refreshImpl(c)
+	accessToken, err := h.getToken(c)
 	if err != nil {
 		return toEchoHttpError(err)
 	}
@@ -96,35 +128,16 @@ func (h *authHandler) changePassword(c echo.Context) error {
 	return c.String(http.StatusOK, "Successfully change password")
 }
 
-func (h *authHandler) refreshImpl(c echo.Context) (string, error) {
-	accessCookie, err := c.Cookie("AccessToken")
-	if err != nil {
-		return "", echo.ErrCookieNotFound
+func (h *authHandler) getToken(c echo.Context) (string, error) {
+	authorization := c.Request().Header.Get("Authorization")
+
+	if authorization == "" {
+		return "", errors.New("No authorization token")
 	}
 
-	refreshCookie, err := c.Cookie("RefreshToken")
-	if err != nil {
-		return "", echo.ErrCookieNotFound
-	}
-
-	accessToken, refreshToken, err := h.s.CheckAndRefresh(accessCookie.Value, refreshCookie.Value)
-	if err != nil {
-		return "", err
-	}
-
-	c.SetCookie(&http.Cookie{
-		Name: "AccessToken",
-		Value: accessToken,
-	})
-
-	c.SetCookie(&http.Cookie{
-		Name: "RefreshToken",
-		Value: refreshToken,
-	})
-
+	accessToken := strings.Split(authorization, " ")[1]
 	return accessToken, nil
 }
-
 
 func toEchoHttpError(err error) *echo.HTTPError {
 	return echo.NewHTTPError(http.StatusInternalServerError, err.Error())

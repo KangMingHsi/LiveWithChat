@@ -71,11 +71,11 @@ func main() {
 
 	token = jwt.NewTokenManager(
 		secretKey,
-		time.Second * 5,
-		time.Second * 20)
+		time.Second * 20,
+		time.Second * 60)
 
 	var au auth.Service
-	au = auth.NewService(users, token)
+	au = auth.NewService(users, users, token)
 
 	srv := server.New(au)
 	srv.Host.Logger.Fatal(

@@ -4,49 +4,33 @@ import (
 	"testing"
 )
 
+const (
+	email = "test@livewithchat.com"
+	password = "1234"
+	gender = "male"
+	nickname = "bot"
+	role = "normal"
+)
+
+var id = NextMemberID()
+
 func TestConstruction(t *testing.T) {
-	var (
-		id = NextMemberID()
-		password = "1234"
-	)
-
-	user, err := NewUser(id, password)
+	_, err := NewUser(id, role, email, gender, nickname, password)
 	if err != nil {
 		t.Errorf("%v", err)
-	}
-
-	if !user.IsCorrectPassword(password) {
-		t.Errorf("%s is not correct password", password)
-	}
-
-	if user.IsBlocked {
-		t.Errorf("user shouldn't be blocked")
-	}
-}
-
-func TestChangePassword(t * testing.T) {
-	var (
-		password = "1234"
-		user = User{}
-	)
-
-	err := user.ChangePassword(password)
-	if err != nil {
-		t.Errorf("%v", err)
-	}
-
-	if !user.IsCorrectPassword(password) {
-		t.Errorf("%s is not correct password", password)
 	}
 }
 
 func TestLogin(t *testing.T) {
 	var (
-		user = User{}
 		ipString = "127.0.0.1"
 	)
+	user, err := NewUser(id, role, email, gender, nickname, password)
+	if err != nil {
+		t.Errorf("%v", err)
+	}
 
-	err := user.Login(ipString)
+	err = user.Login(password, ipString)
 	if err != nil {
 		t.Errorf("%v", err)
 	}
@@ -55,8 +39,25 @@ func TestLogin(t *testing.T) {
 		t.Errorf("Login failed")
 	}
 
-	if user.IpAddr != ipString {
-		t.Errorf("Ip address is not correct")
+	if len(user.IpAddr) == 0 {
+		t.Errorf("Ip address should be added")
+	}
+}
+
+func TestChangePassword(t * testing.T) {
+	var (
+		user = User{}
+		ipString = "127.0.0.1"
+	)
+
+	err := user.ChangePassword(password)
+	if err != nil {
+		t.Errorf("%v", err)
+	}
+
+	err = user.Login(password, ipString)
+	if err != nil {
+		t.Errorf("%v", err)
 	}
 }
 
@@ -82,7 +83,7 @@ func TestClone(t *testing.T) {
 		password = "1234"
 	)
 
-	user, err := NewUser(id, password)
+	user, err := NewUser(id, role, email, gender, nickname, password)
 	if err != nil {
 		t.Errorf("%v", err)
 	}
@@ -92,8 +93,7 @@ func TestClone(t *testing.T) {
 			cloneUser.ID != user.ID ||
 			cloneUser.IsOnline != user.IsOnline ||
 			cloneUser.IsBlocked != user.IsBlocked ||
-			cloneUser.LastLoginTime != user.LastLoginTime ||
-			cloneUser.IpAddr != user.IpAddr) {
+			cloneUser.LoginTime != user.LoginTime) {
 		t.Errorf("%s", "clone should create identical instance")
 	}
 }
@@ -105,7 +105,7 @@ func TestConvertToMap(t *testing.T) {
 		password = "1234"
 	)
 
-	user, err := NewUser(id, password)
+	user, err := NewUser(id, role, email, gender, nickname, password)
 	if err != nil {
 		t.Errorf("%v", err)
 	}

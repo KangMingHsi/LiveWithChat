@@ -6,13 +6,18 @@ import (
 	"time"
 )
 
-var secret = "secret"
+const (
+	secret = "secret"
+	email = "test@livewithchat.com"
+	role = "customer"
+)
+
 var tm = NewTokenManager(secret, time.Second * 5, time.Second * 20)
 
 func TestGenerate(t *testing.T) {
 	id := authentication.NextMemberID()
 
-	_, _, err := tm.Generate(id)
+	_, _, err := tm.Generate(id, email, role)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -20,39 +25,26 @@ func TestGenerate(t *testing.T) {
 
 func TestVerifyPassed(t *testing.T) {
 	id := authentication.NextMemberID()
-	accessToken, refreshToken, err := tm.Generate(id)
+	accessToken, refreshToken, err := tm.Generate(id, email, role)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
 
-	claim, err := tm.Verify(accessToken)
+	claim, err := tm.Verify(accessToken, false)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
 
-	if claim.GetID() != id {
+	if claim.GetKey() != email {
 		t.Errorf("access claim recovers failed")
 	}
 
-	claim, err = tm.Verify(refreshToken)
+	claim, err = tm.Verify(refreshToken, true)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
 
-	if claim.GetID() != id {
+	if claim.GetKey() != email {
 		t.Errorf("refresh claim recovers failed")
-	}
-}
-
-func TestRefresh(t *testing.T) {
-	id := authentication.NextMemberID()
-	_, refreshToken, err := tm.Generate(id)
-	if err != nil {
-		t.Errorf(err.Error())
-	}
-
-	_, _, err = tm.Refresh(refreshToken)
-	if err != nil {
-		t.Errorf(err.Error())
 	}
 }

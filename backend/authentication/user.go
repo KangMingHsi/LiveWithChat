@@ -3,6 +3,7 @@ package authentication
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -16,59 +17,84 @@ type MemberID string
 // User is the central class in domain model
 type User struct {
 	ID  		MemberID
+
+	Email string
 	HashedPassword    string
+	Gender   string
+	Nickname string
+
+	Role string
 	IsOnline bool
 	IsBlocked bool
-	IpAddr  string
-	LastLoginTime time.Time
+	IpAddr  []string
+
+	LimitationPeriod time.Time
+	LoginTime time.Time
 }
 
 // NewUser creates a new user.
-func NewUser(id MemberID, password string) (*User, error) {
+func NewUser(
+		id MemberID,
+		role, email, gender, nickname, password string) (*User, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
     if err != nil {
         return nil, fmt.Errorf("cannot hash password: %w", err)
     }
 	user := &User{
 		ID: id,
+		Email: email,
 		HashedPassword: string(hashedPassword),
+		Gender: gender,
+		Nickname: nickname,
+		Role: role,
 		IsOnline: false,
 		IsBlocked: false,
-		IpAddr: "",
-		LastLoginTime: time.Now(),
+		IpAddr: []string{""},
+		LimitationPeriod: time.Now(),
+		LoginTime: time.Now(),
 	}
 	return user, nil
-}
-
-// IsCorrectPassword checks password is matched or not.
-func (user *User) IsCorrectPassword(password string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(user.HashedPassword), []byte(password))
-    return err == nil
 }
 
 // Clone copies the same instance of user.
 func (user *User) Clone() *User {
 	return &User{
 		ID: 				user.ID,
+		Email: user.Email,
 		HashedPassword:     user.HashedPassword,
+		Gender: user.Gender,
+		Nickname: user.Nickname,
+		Role: user.Role,
 		IsOnline: user.IsOnline,
 		IsBlocked: 		user.IsBlocked,
 		IpAddr: user.IpAddr,
-		LastLoginTime: user.LastLoginTime,
+		LimitationPeriod: user.LimitationPeriod,
+		LoginTime: user.LoginTime,
 	}
 }
 
 // Login changes user to online state.
-func (user *User) Login(ipAddr string) error {
+func (user *User) Login(password, ipAddr string) error {
+	if user.IsBlocked {
+		return ErrUserIsBlocked
+	}
+
+	if err := user.isCorrectPassword(password); err != nil {
+		return err
+	}
+
 	user.IsOnline = true
-	user.IpAddr = ipAddr
-	user.LastLoginTime = time.Now()
+	if idx := sort.SearchStrings(user.IpAddr, ipAddr); idx == len(user.IpAddr) {
+		user.IpAddr = append(user.IpAddr, ipAddr)
+	}
+	user.LoginTime = time.Now()
 	return nil
 }
 
 // Logout changes user to offline state.
 func (user *User) Logout() error {
 	user.IsOnline = false
+	user.LimitationPeriod = time.Now()
 	return nil
 }
 
@@ -76,16 +102,21 @@ func (user *User) Logout() error {
 func (user *User) ConvertToMap() map[string]interface{} {
 	return map[string]interface{} {
 		"ID": user.ID,
+		"Email": user.Email,
 		"HashedPassword": user.HashedPassword,
+		"Gender": user.Gender,
+		"Nickname": user.Nickname,
+		"Role": user.Role,
 		"IsOnline": user.IsOnline,
 		"IsBlocked": user.IsBlocked,
 		"IpAddr": user.IpAddr,
-		"LastLoginTime": user.LastLoginTime,
+		"LimitationPeriod": user.LimitationPeriod,
+		"LoginTime": user.LoginTime,
 	}
 }
 
 // Change user password.
-func (user *User) ChangePassword (newPassword string) error {
+func (user *User) ChangePassword(newPassword string) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
     if err != nil {
         return fmt.Errorf("cannot hash password: %w", err)
@@ -95,10 +126,15 @@ func (user *User) ChangePassword (newPassword string) error {
 	return user.Logout()
 }
 
+// isCorrectPassword checks password is matched or not.
+func (user *User) isCorrectPassword(password string) error {
+	return bcrypt.CompareHashAndPassword([]byte(user.HashedPassword), []byte(password))
+}
+
 // UserRepository provides access a user store.
 type UserRepository interface {
 	Store(user *User) error
-	Find(id MemberID) (*User, error)
+	Find(email string) (*User, error)
 	FindAll() []*User
 }
 
@@ -112,5 +148,5 @@ var ErrUserIsBlocked = errors.New("user is blocked")
 // NextMemberID generates a new member ID.
 // TODO: Move to infrastructure(?)
 func NextMemberID() MemberID {
-	return MemberID(strings.Split(strings.ToUpper(uuid.New()), "-")[0])
+	return MemberID(strings.ToUpper(uuid.New()))
 }

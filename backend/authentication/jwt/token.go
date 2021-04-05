@@ -3,7 +3,6 @@ package jwt
 import (
 	"authentication"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -15,14 +14,25 @@ var ErrUnexpectedMethod = errors.New("unexpected token signing method")
 // ErrInvalidClaims is returned wrong claims.
 var ErrInvalidClaims = errors.New("invalid token claims")
 
+
 // userClaims is for jwt to create token.
 type userClaims struct {
 	jwt.StandardClaims
-	ID  authentication.MemberID
+	Email  string
+	Role   string
 }
 
-func (c *userClaims) GetID () authentication.MemberID {
-	return c.ID
+func (c *userClaims) GetKey() interface{} {
+	return c.Email
+}
+
+func (c *userClaims) ConvertToMap() map[string]interface{} {
+	return map[string]interface{}{
+		"UserID": authentication.MemberID(c.Audience),
+		"Email": c.Email,
+		"Role": c.Role,
+		"IssuedAt": c.IssuedAt,
+	}
 }
 
 type tokenManager struct {
@@ -31,13 +41,21 @@ type tokenManager struct {
 	refreshTokenDuration time.Duration
 }
 
-func (manager *tokenManager) Generate(id authentication.MemberID) (string, string, error) {
-	accessTokenString, err := createToken(id, manager.accessTokenDuration, manager.secretKey)
+func (manager *tokenManager) Generate(
+		id authentication.MemberID, email, role string) (
+		accessTokenString, newRefreshTokenString string, err error) {
+	accessTokenString, err = createToken(
+		id, email, role,
+		manager.accessTokenDuration,
+		false, manager.secretKey)
 	if err != nil {
 		return "", "", err
 	}
 
-	newRefreshTokenString, err := createToken(id, manager.refreshTokenDuration, manager.secretKey)
+	newRefreshTokenString, err = createToken(
+		id, email, role,
+		manager.refreshTokenDuration,
+		true, manager.secretKey)
 	if err != nil {
 		return "", "", err
 	}
@@ -46,7 +64,7 @@ func (manager *tokenManager) Generate(id authentication.MemberID) (string, strin
 }
 
 // Verify checks token.
-func (manager *tokenManager) Verify(accessToken string) (authentication.UserClaims, error) {
+func (manager *tokenManager) Verify(accessToken string, isRefresh bool) (authentication.UserClaims, error) {
 	token, err := jwt.ParseWithClaims(
 		accessToken,
 		&userClaims{},
@@ -56,13 +74,21 @@ func (manager *tokenManager) Verify(accessToken string) (authentication.UserClai
 				return nil, ErrUnexpectedMethod
 			}
 
+			claim := token.Claims.(*userClaims) 
+			if time.Now().Unix() > claim.ExpiresAt {
+				return nil, authentication.ErrExpiredClaims
+			}
+
+			if !isRefresh && claim.Subject == "refresh" {
+				return nil, ErrInvalidClaims
+			}
+
 			return []byte(manager.secretKey), nil
 		},
 	)
 
 	if err != nil {
-		claims, _ := token.Claims.(*userClaims)
-		return claims, err
+		return nil, err
 	}
 
 	claims, ok := token.Claims.(*userClaims)
@@ -71,16 +97,6 @@ func (manager *tokenManager) Verify(accessToken string) (authentication.UserClai
 	}
 
 	return claims, nil
-}
-
-// Refresh accessToken and refreshToken
-func (manager *tokenManager) Refresh(refreshToken string) (string, string, error) {
-	claim, err := manager.Verify(refreshToken)
-	if err != nil {
-		return "", "", errors.New(fmt.Sprintf("(RefreshToken) %s", err))
-	}
-
-	return manager.Generate(claim.(*userClaims).GetID())
 }
 
 // NewTokenManager creates a instance of JWTManager.
@@ -95,13 +111,27 @@ func NewTokenManager(secretKey string,
 }
 
 func createToken(id authentication.MemberID,
+				 email, role string,
 				 tokenDuration time.Duration,
+				 isRefresh bool,
 				 secretKey string) (string, error) {
+	
+	var subject string
+	if isRefresh {
+		subject = "refresh"
+	} else {
+		subject = "normal"
+	}
+
 	claim := userClaims{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(tokenDuration).Unix(),
+			IssuedAt: time.Now().Unix(),
+			Subject: subject,
+			Audience: string(id),
 		},
-		ID: id,
+		Email: email,
+		Role: role,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claim)
