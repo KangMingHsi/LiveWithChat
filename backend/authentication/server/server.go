@@ -23,9 +23,9 @@ func New(au auth.Service) *Server {
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
-
+	apiG := e.Group("/api")
 	h := authHandler{s: au}
-	h.addGroup(e)
+	h.addGroup(apiG)
 
 	s.Host = e
 	return s

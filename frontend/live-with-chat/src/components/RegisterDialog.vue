@@ -135,7 +135,18 @@ export default {
         async onSubmit() {
             const valid = await this.$refs.observer.validate()
             if (valid) {
-                console.log('gogog')
+                var loginForm = new FormData()
+                loginForm.append("email", this.email)
+                loginForm.append("password", this.password)
+                loginForm.append("nickname", this.nickname)
+                loginForm.append("gender", this.gender)
+
+                this.$api.auth.signUp(
+                    loginForm
+                ).then(() => {
+                    this.clear()
+                    this.$emit('closeRegister')
+                })
             }
         },
         clear() {

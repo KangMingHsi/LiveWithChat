@@ -1,42 +1,47 @@
 import axios from 'axios'
-import router from '../router/index'
-import { tip, toLogin, to403Page } from './utils'
+import api from '../apis/index'
+import store from '../store/index'
+import { to403Page } from './utils'
 
-const errorHandle = (status, msg) => {
+async function errorHandle(status, msg) {
     switch(status) {
         case 400:
-            tip(msg)
+            alert(msg)
             break
         case 401:
-            if (router.currentRoute != 'Login') {
-                this.$store.dispatch('auth/setAuth', {
-                    "token": '',
-                    "toLogin": false
+            alert(msg)
+            return api.auth.refresh().then((resp) => {
+                let data = resp.data
+                store.dispatch('auth/setAuth', {
+                    "accessToken": data.AccessToken,
+                    "refreshToken": data.RefreshToken,
+                    "isLogin": true,
                 })
-
-                tip(msg)
-                setTimeout(() => {
-                    toLogin()
-                }, 1000)
-            }
-            break
+            }).catch(() => {
+                store.dispatch('auth/setAuth', {
+                    "accessToken": "",
+                    "refreshToken": "",
+                    "isLogin": false,
+                })
+            })
         case 403:
             to403Page()
             break
         case 404:
-            tip(msg)
+            alert(msg)
             break
         default:
             console.log('no handle to this error: ' + msg)
     }
+    return null
 }
 
-var instance = axios.create({
+const instance = axios.create({
     baseURL: '/api'
 })
 
 instance.interceptors.request.use((config) => {
-    const token = this.$store.state.auth.token
+    const token = config.url.includes('/auth/refresh') ? store.state.auth.refreshToken : store.state.auth.accessToken
     token && (config.headers.Authorization = 'Bearer ' + token)
     return config
 }, (error) => {
@@ -45,14 +50,18 @@ instance.interceptors.request.use((config) => {
 
 instance.interceptors.response.use((response) => {
     return response
-}, (error) => {
+}, async (error) => {
     const { response } = error
     if (response) {
-        errorHandle(response.status, response.data.error)
+        await errorHandle(response.status, response.data.error)
+        if (response.status == 401) {
+            error.config.headers['Authorization'] = 'Bearer ' + store.state.auth.accessToken;
+            return axios.request(error.config)
+        }
         return Promise.reject(error)
     } else {
         if(!window.navigator.onLine) {
-            tip('please connect to network and refresh the page')
+            alert('please connect to network and refresh the page')
         } else {
             return Promise.reject(error)
         }

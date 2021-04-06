@@ -26,7 +26,7 @@ type user struct {
 }
 
 func toUserDB(u *authentication.User) *user {
-	return &user{
+	uDB := &user{
 		ID: u.ID,
 
 		Email: u.Email,
@@ -36,11 +36,12 @@ func toUserDB(u *authentication.User) *user {
 		Role: u.Role,
 		IsOnline: u.IsOnline,
 		IsBlocked: u.IsBlocked,
-		IpAddr: u.IpAddr,
+		IpAddr: *(pq.Array(&u.IpAddr).(*pq.StringArray)),
 
 		LimitationPeriod: u.LimitationPeriod,
 		LoginTime: u.LoginTime,
 	}
+	return uDB
 }
 
 func toUser(u *user) *authentication.User {
@@ -66,10 +67,11 @@ type userRepository struct {
 }
 
 func (r *userRepository) Store(u *authentication.User) error {
-	r.db.Model(&user{}).Clauses(clause.OnConflict{
+	result := r.db.Model(&user{}).Clauses(clause.OnConflict{
 		UpdateAll: true,
 	}).Create(toUserDB(u))
-	return nil
+	
+	return result.Error
 }
 
 func (r *userRepository) Find(email string) (*authentication.User, error) {

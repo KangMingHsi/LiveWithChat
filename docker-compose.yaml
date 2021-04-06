@@ -8,6 +8,7 @@ services:
     container_name: vue_develop
     networks:
       - frontend
+      - backend
     volumes:
       - ./frontend:/vue
     ports:
@@ -34,11 +35,11 @@ services:
     environment:
       - PORT=8080
     volumes:
-      - ./backend/gateway:/go/src/gateway
-    ports:
-      - 8000:8080
+      - ./backend/api_gateway:/go/src/api_gateway
+    # ports:
+    #   - 8000:8080
     tty: true
-    command: "/go/src/gateway/launch.sh"
+    command: "/go/src/api_gateway/launch.sh"
 
   authentication:
     image: golang:latest

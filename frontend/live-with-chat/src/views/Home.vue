@@ -25,6 +25,7 @@
           </template>
           <RegisterDialog
             ref="registerDialog"
+            @closeRegister="closeRegister"
           />
         </v-dialog>
       </div>
@@ -53,7 +54,12 @@ export default {
     showRegister: function(val) {
       val || this.$refs.registerDialog.clear()
     }
-  }
+  },
+  methods: {
+    closeRegister() {
+      this.showRegister = false
+    }
+  },
 }
 </script>
 

@@ -79,19 +79,29 @@ export default {
     password: null,
     showPass: false
   }),
-  computed: {
-    params() {
-      return {
-        email: this.email,
-        password: this.password
-      }
-    }
-  },
   methods: {
     async onSubmit() {
       const valid = await this.$refs.observer.validate()
       if (valid) {
-        this.login(this.params) // action to login
+        var loginForm = new FormData()
+        loginForm.append("email", this.email)
+        loginForm.append("password", this.password)
+
+        this.$api.auth.login(
+          loginForm
+        ).then((resp) => {
+          let data = resp.data
+          this.$store.dispatch('auth/setAuth', {
+            "accessToken": data.AccessToken,
+            "refreshToken": data.RefreshToken,
+            "isLogin": true,
+          })
+          this.clear()
+          this.$emit('closeLogin')
+          // this.$router.push('/')
+        }).catch((error) => {
+          console.log(error)
+        }) // action to login
       }
     },
     clear() {

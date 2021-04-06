@@ -87,6 +87,7 @@ func (user *User) Login(password, ipAddr string) error {
 	if idx := sort.SearchStrings(user.IpAddr, ipAddr); idx == len(user.IpAddr) {
 		user.IpAddr = append(user.IpAddr, ipAddr)
 	}
+
 	user.LoginTime = time.Now()
 	return nil
 }

@@ -15,7 +15,9 @@
       <router-link to="/" class="navbar-item">Home</router-link>
       <router-link to="/about" class="navbar-item">About</router-link>
     </div>
-    <div class="navbar-end">
+    <div class="navbar-end-login"
+     v-if="!isLogin"
+    >
       <v-dialog
        v-model="showLogin"
        width="500"
@@ -32,8 +34,16 @@
         </template>
         <LoginDialog
           ref="loginDialog"
+          @closeLogin="closeLogin"
         />
       </v-dialog>
+    </div>
+    <div class="navbar-end-logout"
+     v-if="isLogin"
+    >
+      <a class="button is-dark" @click="logout">
+        <strong>Sign Out</strong>
+      </a>
     </div>
   </div>
 </nav>
@@ -51,12 +61,29 @@ export default {
       showLogin: false,
     }
   },
+  computed: {
+    isLogin() {
+      return this.$store.state.auth.isLogin
+    }
+  },
   watch: {
     showLogin: function(val) {
       val || this.$refs.loginDialog.clear()
     },
   },
   methods: {
+    closeLogin() {
+      this.showLogin = false
+    },
+    logout() {
+      this.$api.auth.logout().finally(() => {
+        this.$store.dispatch('auth/setAuth', {
+          "accessToken": "",
+          "refreshToken": "",
+          "isLogin": false,
+        })
+      })
+    }
   },
 }
 </script>

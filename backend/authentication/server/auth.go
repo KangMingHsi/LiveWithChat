@@ -1,7 +1,6 @@
 package server
 
 import (
-	"authentication"
 	"authentication/auth"
 	"errors"
 	"net/http"
@@ -14,7 +13,7 @@ type authHandler struct {
 	s  auth.Service
 }
 
-func (h *authHandler) addGroup(e *echo.Echo) {
+func (h *authHandler) addGroup(e *echo.Group) {
 	g := e.Group("/auth")
 	g.PUT("/register", h.register)
 	g.POST("/login", h.login)
@@ -35,12 +34,12 @@ func (h *authHandler) register(c echo.Context) error {
 	nickname := values.Get("nickname")
 	password := values.Get("password")
 	
-	id, err := h.s.Register(email, gender, nickname, password)
+	_, err = h.s.Register(email, gender, nickname, password)
 	if err != nil {
 		return toEchoHttpError(err)
 	}
 
-	return c.JSON(http.StatusOK, &struct{ID authentication.MemberID `json:"user_id"`}{ID: id})
+	return c.String(http.StatusOK, "Successfully register")
 }
 
 func (h *authHandler) login(c echo.Context) error {
@@ -52,6 +51,7 @@ func (h *authHandler) login(c echo.Context) error {
 	email := values.Get("email")
 	password := values.Get("password")
 	ipAddr := c.RealIP()
+
 	accessToken, refreshToken, err := h.s.Login(
 		email,
 		password,
@@ -73,7 +73,12 @@ func (h *authHandler) logout(c echo.Context) error {
 	if err != nil {
 		return toEchoHttpError(err)
 	}
-	
+
+	err = h.s.Check(accessToken)
+	if err != nil {
+		return toEchoUnauthorizedError(err)
+	}
+
 	err = h.s.Logout(accessToken)
 	if err != nil {
 		return toEchoHttpError(err)
@@ -90,7 +95,7 @@ func (h *authHandler) check(c echo.Context) error {
 
 	err = h.s.Check(accessToken)
 	if err != nil {
-		return toEchoHttpError(err)
+		return toEchoUnauthorizedError(err)
 	}
 
 	return c.String(http.StatusOK, "Is valid")
@@ -119,10 +124,15 @@ func (h *authHandler) changePassword(c echo.Context) error {
 		return toEchoHttpError(err)
 	}
 
+	err = h.s.Check(accessToken)
+	if err != nil {
+		return toEchoUnauthorizedError(err)
+	}
+
 	newPassword := c.FormValue("newPassword")
 	err = h.s.ChangePassword(newPassword, accessToken)
 	if err != nil {
-		return toEchoHttpError(err)
+		return toEchoUnauthorizedError(err)
 	}
 
 	return c.String(http.StatusOK, "Successfully change password")
@@ -135,8 +145,12 @@ func (h *authHandler) getToken(c echo.Context) (string, error) {
 		return "", errors.New("No authorization token")
 	}
 
-	accessToken := strings.Split(authorization, " ")[1]
+	accessToken := strings.Replace(authorization, "Bearer ", "", 1)
 	return accessToken, nil
+}
+
+func toEchoUnauthorizedError(err error) *echo.HTTPError {
+	return echo.NewHTTPError(http.StatusUnauthorized, err.Error())
 }
 
 func toEchoHttpError(err error) *echo.HTTPError {

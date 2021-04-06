@@ -35,7 +35,7 @@ func main() {
 		Host:   fmt.Sprintf("%s:%s", authHost, authPort),
 	})
 
-	e.Any("/auth/*", echo.WrapHandler(authProxy))
+	e.Any("/api/auth/*", echo.WrapHandler(authProxy))
 	e.Logger.Fatal(
 		e.Start(fmt.Sprintf(":%s", addr)))
 }
