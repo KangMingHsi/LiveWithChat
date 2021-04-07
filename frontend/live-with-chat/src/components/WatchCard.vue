@@ -1,13 +1,54 @@
 <template>
-  <div class="watch-card">
-    <div class="card">
-      <div class="card-content">
-        <h2 class="is-size-4 has-text-weight-bold">{{ watch.name }}</h2>
-        <small class="watch-date">{{ watch.date }}</small>
-        <span>{{ watch.location }}</span>
-      </div>
-    </div>
-  </div>
+  <v-container>
+    <v-card
+      width="400px"
+      height="300px"
+    >
+      <v-img
+        height="200px"
+        src="https://placekitten.com/400/400"
+      >
+      </v-img>
+      <small class="watch-date">{{ watch.date }}</small>
+      <v-row
+        align="start"
+        dense
+        style="padding-top: 5px; padding-left: 5px;"
+      >
+        <v-col
+          cols="2"
+        >
+          <v-avatar
+            size="28px"
+            color="primary"
+          >
+            <v-icon dark>
+              mdi-account-circle
+            </v-icon>
+          </v-avatar>
+        </v-col>
+        <v-col cols="10">
+          <v-row
+            no-gutters
+            align="center"
+          >
+            <div class="ellipsis">
+              <h2 class="is-size-4 has-text-weight-bold">{{ watch.name }}</h2>
+            </div>
+          </v-row>
+          <v-row
+            no-gutters
+            align="center"
+          >
+            <div class="ellipsis">
+              <span>{{ watch.location }}</span>
+            </div>
+          </v-row>
+        </v-col>
+      </v-row>
+      
+    </v-card>
+  </v-container>
 </template>
 <script>
   export default {
@@ -17,32 +58,26 @@
   }
 </script>
 <style lang="scss" scoped>
-  .card {
-    background-image: url('https://placekitten.com/400/400');
-    height: 200px;
-    background-position: center;
-    background-size: cover;
-    text-align: center;
-  }
-  .card-content {
-    padding-top: 50px;
-    position: absolute;
-    color: #FFF;
-    background-color: rgba(0, 0, 0, 0.35);
-    top: 0;
-    padding: 10px;
-    height: 200px;
-    width: 100%;
-    span {
-      font-size: 18px;
-      text-align: center;
-      width: 100%;
-      position: absolute;
-      bottom: 10px;
-      right: 0;
-    }
+  .ellipsis {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
     h2 {
-      margin-top: 10px;
+      left: 10px;
+      font-size: .85em !important;
+      text-align: left;
+      text-overflow: ellipsis;
+      line-height: normal;
+    }
+    span {
+      font-size: .8em;
+      text-align: left;
+      // width: 100%;
+      // bottom: 10px;
+      text-overflow: ellipsis;
+      line-height: normal;
+      left: 10px;
     }
   }
   .watch-date {
