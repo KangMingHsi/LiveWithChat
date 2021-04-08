@@ -14,10 +14,13 @@ type UserClaims interface {
 // TokenManager is to generate and verify token.
 type TokenManager interface {
 	// Generate creates token.
-	Generate(id MemberID, email, role string) (string, string, error)
+	Generate(id MemberID, email, role string) (string, error)
 
 	// Verify checks token.
-	Verify(accessToken string, isRefresh bool) (UserClaims, error)
+	Verify(token string) (UserClaims, error)
+
+	// Verify checks without expire time.
+	VerifyWithoutExpired(token string) (UserClaims, error)
 }
 
 // ErrExpiredClaims is returned expired claims.

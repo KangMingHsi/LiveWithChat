@@ -9,7 +9,8 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-type user struct {
+// User schema
+type User struct {
 	ID  		authentication.MemberID `gorm:"primaryKey"`
 
 	Email string `gorm:"unique;index"`
@@ -19,14 +20,14 @@ type user struct {
 	Role		      string
 	IsOnline bool `gorm:"default:false"`
 	IsBlocked bool `gorm:"default:false"`
-	IpAddr  pq.StringArray `gorm:"type:text[];default:{}"`
+	IpAddr  pq.StringArray `gorm:"type:text[]"`
 
 	LimitationPeriod time.Time
 	LoginTime time.Time
 }
 
-func toUserDB(u *authentication.User) *user {
-	uDB := &user{
+func toUserDB(u *authentication.User) *User {
+	return &User{
 		ID: u.ID,
 
 		Email: u.Email,
@@ -36,15 +37,14 @@ func toUserDB(u *authentication.User) *user {
 		Role: u.Role,
 		IsOnline: u.IsOnline,
 		IsBlocked: u.IsBlocked,
-		IpAddr: *(pq.Array(&u.IpAddr).(*pq.StringArray)),
+		IpAddr: u.IpAddr,
 
 		LimitationPeriod: u.LimitationPeriod,
 		LoginTime: u.LoginTime,
 	}
-	return uDB
 }
 
-func toUser(u *user) *authentication.User {
+func toUser(u *User) *authentication.User {
 	return &authentication.User{
 		ID: u.ID,
 
@@ -67,7 +67,7 @@ type userRepository struct {
 }
 
 func (r *userRepository) Store(u *authentication.User) error {
-	result := r.db.Model(&user{}).Clauses(clause.OnConflict{
+	result := r.db.Model(&User{}).Clauses(clause.OnConflict{
 		UpdateAll: true,
 	}).Create(toUserDB(u))
 	
@@ -75,9 +75,9 @@ func (r *userRepository) Store(u *authentication.User) error {
 }
 
 func (r *userRepository) Find(email string) (*authentication.User, error) {
-	var uRow *user
+	var uRow *User
 
-	result := r.db.Model(&user{}).First(&uRow, "email = ?", email)
+	result := r.db.Model(&User{}).First(&uRow, "email = ?", email)
 	if result.Error != nil {
 		return nil, authentication.ErrUnknownUser
 	}
@@ -86,8 +86,8 @@ func (r *userRepository) Find(email string) (*authentication.User, error) {
 }
 
 func (r *userRepository) FindAll() []*authentication.User {
-	uRows := []*user{}
-	r.db.Model(&user{}).Find(&uRows)
+	uRows := []*User{}
+	r.db.Model(&User{}).Find(&uRows)
 
 	us := make([]*authentication.User, len(uRows))
 	for index, uRow := range uRows {
@@ -100,7 +100,6 @@ func (r *userRepository) FindAll() []*authentication.User {
 // NewUserRepository returns a new instance of a postgres user repository.
 func NewUserRepository (client *gorm.DB) authentication.UserRepository {
 	r := &userRepository{}
-	client.Migrator().AutoMigrate(&user{})
 	r.db = client.Session(&gorm.Session{NewDB: true})
 	return r
 }

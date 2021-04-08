@@ -18,7 +18,7 @@ func NewLoggingService(logger log.Logger, s Service) Service {
 	return &loggingService{logger, s}
 }
 
-func (s *loggingService) Login(email string, password string, ipAddr string) (accessToken, refreshToken string, err error) {
+func (s *loggingService) Login(email string, password string, ipAddr string) (accessToken string, err error) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "Login",
@@ -66,7 +66,7 @@ func (s *loggingService) Check(accessToken string) (err error) {
 	return s.next.Check(accessToken)
 }
 
-func (s *loggingService) Refresh(refreshToken string) (newAccessToken, newRefreshToken string, err error) {
+func (s *loggingService) Refresh(refreshToken string) (newAccessToken string, err error) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "Refresh",

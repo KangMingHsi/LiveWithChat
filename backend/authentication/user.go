@@ -49,7 +49,7 @@ func NewUser(
 		Role: role,
 		IsOnline: false,
 		IsBlocked: false,
-		IpAddr: []string{""},
+		IpAddr: []string{},
 		LimitationPeriod: time.Now(),
 		LoginTime: time.Now(),
 	}

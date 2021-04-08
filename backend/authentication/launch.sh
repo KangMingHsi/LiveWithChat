@@ -1,9 +1,37 @@
 #!/usr/bin/env bash
-
-set -ex
+set -e
 
 BASEDIR=$(dirname "${0}")
-echo "${BASEDIR}"
-
 cd ${BASEDIR}
-go run cmd/main.go ${1}
+
+function usage() {
+    echo "Add description of the script functions here."
+    echo
+    echo "Syntax: scriptTemplate [-h]"
+    echo "options:"
+    echo "-h     Print this Help."
+    echo "-i     Launch db in memory"
+    echo "-m     Migrate database first"
+    echo
+}
+
+function main() {
+    args=""
+    while getopts "?him" option; do
+        case $option in
+            m)
+                go run cmd/migrate/main.go
+                exit;;
+            i)
+                args="${args} -inmem"
+                ;;
+            h|?)
+                usage
+                exit;;
+        esac
+    done
+
+    go run cmd/activate/main.go ${args}
+}
+
+main $@

@@ -52,7 +52,7 @@ func (h *authHandler) login(c echo.Context) error {
 	password := values.Get("password")
 	ipAddr := c.RealIP()
 
-	accessToken, refreshToken, err := h.s.Login(
+	token, err := h.s.Login(
 		email,
 		password,
 		ipAddr,
@@ -63,8 +63,7 @@ func (h *authHandler) login(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"AccessToken": accessToken,
-		"RefreshToken": refreshToken,
+		"token": token,
 	})
 }
 
@@ -107,14 +106,13 @@ func (h *authHandler) refresh(c echo.Context) error {
 		return toEchoHttpError(err)
 	}
 
-	newAccessToken, newRefreshToken, err := h.s.Refresh(refreshToken)
+	newToken, err := h.s.Refresh(refreshToken)
 	if err != nil {
 		return toEchoHttpError(err)
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"AccessToken": newAccessToken,
-		"RefreshToken": newRefreshToken,
+		"token": newToken,
 	})
 }
 

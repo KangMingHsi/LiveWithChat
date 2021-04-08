@@ -3,13 +3,14 @@ package main
 import (
 	"authentication"
 	"authentication/auth"
+	"authentication/cmd"
 	"authentication/inmen"
 	"authentication/jwt"
 	"authentication/postgres"
 	"authentication/server"
 	"flag"
 	"fmt"
-	"os"
+	"strconv"
 	"time"
 
 	psql "gorm.io/driver/postgres"
@@ -25,19 +26,25 @@ const (
 	defaultDBPassword		 = "default"
 	defaultDBName			 = "livewithchat"
 	defaultDBPort			 = "5432"
+
+	defaultTokenDuration     = "3"
 )
 
 func main() {
 	var (
-		addr   = envString("PORT", defaultPort)
-		secretKey = envString("SECRET", defaultSecret)
+		addr   = cmd.EnvString("PORT", defaultPort)
+		secretKey = cmd.EnvString("SECRET", defaultSecret)
 
-		dbHost = envString("DB_HOST", defaultDBHost)
-		dbPort = envString("DB_PORT", defaultDBPort)
-		dbUser = envString("DB_USER", defaultDBUser)
-		dbPassword = envString("DB_PASSWORD", defaultDBPassword)
-		dbName = envString("DB_NAME", defaultDBName)
+		dbHost = cmd.EnvString("DB_HOST", defaultDBHost)
+		dbPort = cmd.EnvString("DB_PORT", defaultDBPort)
+		dbUser = cmd.EnvString("DB_USER", defaultDBUser)
+		dbPassword = cmd.EnvString("DB_PASSWORD", defaultDBPassword)
+		dbName = cmd.EnvString("DB_NAME", defaultDBName)
 
+		tokenDuration = func() int {
+			duration, _ := strconv.Atoi(cmd.EnvString("TOKEN_DURATION", defaultTokenDuration))
+			return duration
+		}()
 		inmemory          = flag.Bool("inmem", false, "use in-memory repositories")
 	)
 	flag.Parse()
@@ -71,8 +78,7 @@ func main() {
 
 	token = jwt.NewTokenManager(
 		secretKey,
-		time.Second * 20,
-		time.Second * 60)
+		time.Second * time.Duration(tokenDuration))
 
 	var au auth.Service
 	au = auth.NewService(users, users, token)
@@ -80,12 +86,4 @@ func main() {
 	srv := server.New(au)
 	srv.Host.Logger.Fatal(
 		srv.Host.Start(fmt.Sprintf(":%s", addr)))
-}
-
-func envString(env, fallback string) string {
-	e := os.Getenv(env)
-	if e == "" {
-		return fallback
-	}
-	return e
 }

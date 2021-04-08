@@ -78,8 +78,7 @@ export default {
     logout() {
       this.$api.auth.logout().finally(() => {
         this.$store.dispatch('auth/setAuth', {
-          "accessToken": "",
-          "refreshToken": "",
+          "token": "",
           "isLogin": false,
         })
       })

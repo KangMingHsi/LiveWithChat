@@ -15,7 +15,7 @@ var ErrEmailIsUsed = errors.New("email is used")
 // Service is the interface that provides authorization methods.
 type Service interface {
 	// Login checks user email and password, returns token.
-	Login(email string, password string, ipAddr string) (string, string, error)
+	Login(email string, password string, ipAddr string) (string, error)
 
 	// Logout.
 	Logout(accessToken string) error
@@ -27,7 +27,7 @@ type Service interface {
 	Check(accessToken string) error
 
 	// Refresh token
-	Refresh(refreshToken string) (string, string, error)
+	Refresh(refreshToken string) (string, error)
 
 	// Resets password
 	ChangePassword(newPassword, accessToken string) error
@@ -39,33 +39,33 @@ type service struct {
 	tokenManager authentication.TokenManager
 }
 
-func (s *service) Login(email string, password string, ipAddr string) (string, string, error) {
+func (s *service) Login(email string, password string, ipAddr string) (string, error) {
 	if email == "" || password == "" {
-		return "", "", ErrInvalidArgument
+		return "", ErrInvalidArgument
 	}
 
 	user, err := s.userDB.Find(email)
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
 
 	err = user.Login(password, ipAddr)
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
 
 	err = s.userDB.Store(user)
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
 
-	accessString, refreshString, err := s.tokenManager.Generate(
+	accessString, err := s.tokenManager.Generate(
 		user.ID, user.Email, user.Role)
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
 
-	return accessString, refreshString, nil
+	return accessString, nil
 }
 
 func (s *service) Register(
@@ -102,7 +102,7 @@ func (s *service) Register(
 }
 
 func (s *service) Logout(accessToken string) error {
-	claim, err := s.tokenManager.Verify(accessToken, false)
+	claim, err := s.tokenManager.Verify(accessToken)
 	if err != nil {
 		return err
 	}
@@ -135,7 +135,7 @@ func (s *service) Logout(accessToken string) error {
 }
 
 func (s *service) Check(accessToken string) error {
-	claim, err := s.tokenManager.Verify(accessToken, false)
+	claim, err := s.tokenManager.Verify(accessToken)
 	if err != nil {
 		return err
 	}
@@ -159,10 +159,10 @@ func (s *service) Check(accessToken string) error {
 	return nil
 }
 
-func (s *service) Refresh(refreshToken string) (string, string, error) {
-	claim, err := s.tokenManager.Verify(refreshToken, true)
+func (s *service) Refresh(refreshToken string) (string, error) {
+	claim, err := s.tokenManager.VerifyWithoutExpired(refreshToken)
 	if err != nil {
-		return "", "", errors.New(fmt.Sprintf("(RefreshToken) %s", err))
+		return "", errors.New(fmt.Sprintf("(RefreshToken) %s", err))
 	}
 
 	claimMap := claim.ConvertToMap()
@@ -170,20 +170,20 @@ func (s *service) Refresh(refreshToken string) (string, string, error) {
 	email := claim.GetKey().(string)
 	user, err := s.userDB.Find(email)
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
 
 	if user.IsBlocked {
-		return "", "", authentication.ErrUserIsBlocked
+		return "", authentication.ErrUserIsBlocked
 	}
 
 	if _, ok := claimMap["IssuedAt"]; !ok {
-		return "", "", errors.New("no issued at")
+		return "", errors.New("no issued at")
 	}
 
 	if user.LimitationPeriod.Unix() > claimMap["IssuedAt"].(int64) ||
 	   !user.IsOnline {
-		return "", "", errors.New("You should login again")
+		return "", errors.New("You should login again")
 	}
 
 	return s.tokenManager.Generate(
@@ -193,7 +193,7 @@ func (s *service) Refresh(refreshToken string) (string, string, error) {
 }
 
 func (s *service) ChangePassword(newPassword, accessToken string) error {
-	claim, err := s.tokenManager.Verify(accessToken, false)
+	claim, err := s.tokenManager.Verify(accessToken)
 	if err != nil {
 		return err
 	}

@@ -47,17 +47,13 @@ func TestLogin(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	accessToken, refreshToken, err := s.Login(user.Email, password, "")
+	accessToken, err := s.Login(user.Email, password, "")
 	if err != nil {
 		t.Errorf("%v", err)
 	}
 
 	if accessToken != "access" {
 		t.Errorf("accessToken is wrong")
-	}
-
-	if refreshToken != "refresh" {
-		t.Errorf("refreshToken is wrong")
 	}
 
 	if !user.IsOnline {
@@ -73,17 +69,13 @@ func TestCheckAccessToken(t *testing.T) {
 }
 
 func TestRefreshToken(t *testing.T) {
-	accessToken, refreshToken, err := s.Refresh("refresh")
+	accessToken, err := s.Refresh("access")
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	if accessToken != "access" {
 		t.Errorf("accessToken is wrong")
-	}
-
-	if refreshToken != "refresh" {
-		t.Errorf("refreshToken is wrong")
 	}
 }
 
@@ -100,7 +92,7 @@ func TestChangePassword(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	accessToken, _, err := s.Login(user.Email, password, "")
+	accessToken, err := s.Login(user.Email, password, "")
 	if err != nil {
 		t.Errorf("%v", err)
 	}
@@ -138,15 +130,19 @@ func (r *mockUserRepository) FindAll() []*authentication.User {
 type mockTokenManager struct {}
 
 func (s *mockTokenManager) Generate(
-		id authentication.MemberID, email, role string) (string, string, error) {
-	return "access", "refresh", nil
+		id authentication.MemberID, email, role string) (string, error) {
+	return "access", nil
 }
 
-func (s *mockTokenManager) Verify(accessToken string, isRefresh bool) (authentication.UserClaims, error) {
-	if isRefresh && accessToken != "refresh" {
-		return &claim, errors.New("refresh token is invalid")
+func (s *mockTokenManager) Verify(accessToken string,) (authentication.UserClaims, error) {
+	if accessToken != "access"{
+		return &claim, errors.New("access token is invalid")
 	}
-	if !isRefresh && accessToken != "access"{
+	return &claim, nil
+}
+
+func (s *mockTokenManager) VerifyWithoutExpired(accessToken string,) (authentication.UserClaims, error) {
+	if accessToken != "access"{
 		return &claim, errors.New("access token is invalid")
 	}
 	return &claim, nil

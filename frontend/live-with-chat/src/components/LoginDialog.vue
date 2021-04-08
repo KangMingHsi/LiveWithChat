@@ -92,8 +92,7 @@ export default {
         ).then((resp) => {
           let data = resp.data
           this.$store.dispatch('auth/setAuth', {
-            "accessToken": data.AccessToken,
-            "refreshToken": data.RefreshToken,
+            "token": data.token,
             "isLogin": true,
           })
           this.clear()

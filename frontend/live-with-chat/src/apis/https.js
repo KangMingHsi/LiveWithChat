@@ -3,27 +3,28 @@ import api from '../apis/index'
 import store from '../store/index'
 import { to403Page } from './utils'
 
-async function errorHandle(status, msg) {
+async function errorHandle(status, msg, error) {
     switch(status) {
         case 400:
             alert(msg)
             break
         case 401:
             alert(msg)
-            return api.auth.refresh().then((resp) => {
+            var refresh = api.auth.refresh().then((resp) => {
                 let data = resp.data
                 store.dispatch('auth/setAuth', {
-                    "accessToken": data.AccessToken,
-                    "refreshToken": data.RefreshToken,
+                    "token": data.token,
                     "isLogin": true,
                 })
             }).catch(() => {
                 store.dispatch('auth/setAuth', {
-                    "accessToken": "",
-                    "refreshToken": "",
+                    "token": "",
                     "isLogin": false,
                 })
             })
+            await refresh
+            error.config.headers['Authorization'] = 'Bearer ' + store.state.auth.token;
+            return axios.request(error.config)
         case 403:
             to403Page()
             break
@@ -33,7 +34,7 @@ async function errorHandle(status, msg) {
         default:
             console.log('no handle to this error: ' + msg)
     }
-    return null
+    return Promise.reject(error)
 }
 
 const instance = axios.create({
@@ -41,7 +42,7 @@ const instance = axios.create({
 })
 
 instance.interceptors.request.use((config) => {
-    const token = config.url.includes('/auth/refresh') ? store.state.auth.refreshToken : store.state.auth.accessToken
+    const token = store.state.auth.token
     token && (config.headers.Authorization = 'Bearer ' + token)
     return config
 }, (error) => {
@@ -53,12 +54,12 @@ instance.interceptors.response.use((response) => {
 }, async (error) => {
     const { response } = error
     if (response) {
-        await errorHandle(response.status, response.data.error)
-        if (response.status == 401) {
-            error.config.headers['Authorization'] = 'Bearer ' + store.state.auth.accessToken;
-            return axios.request(error.config)
-        }
-        return Promise.reject(error)
+        return await errorHandle(response.status, response.data.error, error)
+        // if (response.status == 401) {
+        //     error.config.headers['Authorization'] = 'Bearer ' + store.state.auth.token;
+        //     return axios.request(error.config)
+        // }
+        // return Promise.reject(error)
     } else {
         if(!window.navigator.onLine) {
             alert('please connect to network and refresh the page')

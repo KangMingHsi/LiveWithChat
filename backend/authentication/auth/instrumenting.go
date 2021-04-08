@@ -24,7 +24,7 @@ func NewInstrumentingService(counter metrics.Counter, latency metrics.Histogram,
 }
 
 func (s *instrumentingService) Login(email string, password string, ipAddr string) (
-		accessToken string, refreshToken string, err error) {
+		accessToken string, err error) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "Login").Add(1)
 		s.requestLatency.With("method", "Login").Observe(time.Since(begin).Seconds())
@@ -60,7 +60,7 @@ func (s *instrumentingService) Check(accessToken string) (err error) {
 	return s.next.Check(accessToken)
 }
 
-func (s *instrumentingService) Refresh(refreshToken string) (newAccessToken, newRefreshToken string, err error) {
+func (s *instrumentingService) Refresh(refreshToken string) (newAccessToken string, err error) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "Refresh").Add(1)
 		s.requestLatency.With("method", "Refresh").Observe(time.Since(begin).Seconds())

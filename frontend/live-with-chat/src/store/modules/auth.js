@@ -1,22 +1,19 @@
 export default {
     namespaced: true,
     state: {
-        accessToken: "",
-        refreshToken: "",
+        token: "",
         isLogin: false,
     },
     mutations: {
         SET_AUTH(state, options) {
-            state.accessToken = options.accessToken
-            state.refreshToken = options.refreshToken
+            state.token = options.token
             state.isLogin = options.isLogin
         },
     },
     actions: {
         setAuth(context, options) {
             context.commit('SET_AUTH', {
-                accessToken: options.accessToken,
-                refreshToken: options.refreshToken,
+                token: options.token,
                 isLogin: options.isLogin,
             })
         },
