@@ -15,10 +15,10 @@ type authHandler struct {
 
 func (h *authHandler) addGroup(e *echo.Group) {
 	g := e.Group("/auth")
-	g.PUT("/register", h.register)
+	g.POST("/register", h.register)
 	g.POST("/login", h.login)
 	g.POST("/logout", h.logout)
-	g.POST("/change-password", h.changePassword)
+	g.PATCH("/change-password", h.changePassword)
 	g.POST("/check", h.check)
 	g.POST("/refresh", h.refresh)
 }

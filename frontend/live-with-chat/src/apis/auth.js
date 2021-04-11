@@ -2,7 +2,7 @@ import req from './https.js'
 
 const auth = {
     signUp(params) {
-        return req('put', '/auth/register', params)
+        return req('post', '/auth/register', params)
     },
     login(params) {
         return req('post', '/auth/login', params)
