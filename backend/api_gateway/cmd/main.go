@@ -13,7 +13,7 @@ import (
 const (
 	defaultPort              = "8080"
 	
-	defaultAuthHost			 = "authentication"
+	defaultAuthHost			 = "auth_subsystem"
 	defaultAuthPort			 = "8080"
 )
 

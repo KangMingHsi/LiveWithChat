@@ -41,7 +41,7 @@ services:
     tty: true
     command: "/go/src/api_gateway/launch.sh"
 
-  authentication:
+  auth_subsystem:
     image: golang:latest
     container_name: auth_service
     networks:
@@ -50,9 +50,9 @@ services:
       - PORT=8080
       - SECRET=secret
     volumes:
-      - ./backend/authentication:/go/src/authentication
+      - ./backend/auth_subsystem:/go/src/auth_subsystem
     tty: true
-    command: "/go/src/authentication/launch.sh"
+    command: "/go/src/auth_subsystem/launch.sh"
 
   cache:
     image: redis:latest
