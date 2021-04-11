@@ -93,6 +93,11 @@ func (manager *tokenManager) VerifyWithoutExpired(tokenString string) (authentic
         return nil, err
     }
 
+	_, ok := token.Method.(*jwt.SigningMethodHMAC)
+	if !ok {
+		return nil, ErrUnexpectedMethod
+	}
+
 	claims, ok := token.Claims.(*userClaims)
 	if !ok {
 		return nil, ErrInvalidClaims

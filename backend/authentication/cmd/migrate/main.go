@@ -27,6 +27,9 @@ func main() {
 		dbUser = cmd.EnvString("DB_USER", defaultDBUser)
 		dbPassword = cmd.EnvString("DB_PASSWORD", defaultDBPassword)
 		dbName = cmd.EnvString("DB_NAME", defaultDBName)
+
+		upgradeTo = flag.String("upgrade", "", "the revision of the db to upgrade to")
+		downgradeTo = flag.String("downgrade", "", "the revision of the db to downgrade to")
 	)
 
 	flag.Parse()
@@ -60,7 +63,15 @@ func main() {
 		},
 	})
 
-	if err = m.Migrate(); err != nil {
+	if *upgradeTo != "" {
+		err = m.MigrateTo(*upgradeTo)
+	} else if *downgradeTo != "" {
+		err = m.RollbackTo(*downgradeTo)
+	} else {
+		err = m.Migrate()
+	}
+
+	if err != nil {
 		log.Fatalf("Could not migrate: %v", err)
 	}
 	log.Printf("Migration did run successfully")
