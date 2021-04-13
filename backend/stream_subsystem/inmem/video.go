@@ -1,8 +1,8 @@
 package inmem
 
 import (
-	"sync"
 	"stream_subsystem"
+	"sync"
 )
 
 type videoRepository struct {
@@ -45,6 +45,13 @@ func (r *videoRepository) FindAll(conditions map[string]interface{}) []*stream_s
 		}
 	}
 	return videos
+}
+
+func (r *videoRepository) Delete(id stream_subsystem.VideoID) error {
+	r.mtx.Lock()
+	defer r.mtx.Unlock()
+	delete(r.videos, id)
+	return nil
 }
 
 // NewVideoRepository returns a new instance of a in-memory video repository.

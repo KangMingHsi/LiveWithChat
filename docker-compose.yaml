@@ -72,8 +72,21 @@ services:
     volumes:
       - database-data:/var/lib/postgresql/data/
 
+  database_test:
+    image: postgres:latest
+    container_name: relation_db_test_server
+    networks:
+      - backend
+    environment:
+      POSTGRES_USER: livewithchat
+      POSTGRES_PASSWORD: default
+      POSTGRES_DB: mock
+    volumes:
+      - database-data-test:/var/lib/postgresql/data/
+
 networks:
   frontend:
   backend:
 volumes:
   database-data:
+  database-data-test:

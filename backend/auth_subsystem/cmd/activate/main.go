@@ -10,11 +10,13 @@ import (
 	"auth_subsystem/server"
 	"flag"
 	"fmt"
+	"logger"
 	"strconv"
 	"time"
 
 	psql "gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 const (
@@ -61,7 +63,9 @@ func main() {
 			dbHost, dbUser, dbPassword, dbName, dbPort,
 		)
 		var client *gorm.DB
-		client, err := gorm.Open(psql.Open(dsn), &gorm.Config{})
+		client, err := gorm.Open(psql.Open(dsn), &gorm.Config{
+			Logger: logger.Default.LogMode(logger.Info),
+		})
 		if err != nil {
 			panic(err)
 		}

@@ -1,11 +1,11 @@
 package main
 
 import (
-	"stream_subsystem/cmd"
-	"stream_subsystem/postgres"
 	"flag"
 	"fmt"
 	"log"
+	"stream_subsystem/cmd"
+	"stream_subsystem/postgres"
 
 	"github.com/go-gormigrate/gormigrate/v2"
 	psql "gorm.io/driver/postgres"
@@ -30,13 +30,22 @@ func main() {
 
 		upgradeTo = flag.String("upgrade", "", "the revision of the db to upgrade to")
 		downgradeTo = flag.String("downgrade", "", "the revision of the db to downgrade to")
+		forMock = flag.Bool("mock", false, "migrate for mock")
 	)
 
 	flag.Parse()
-	dsn := fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Taipei",
-		dbHost, dbUser, dbPassword, dbName, dbPort,
-	)
+	var dsn string
+	if *forMock {
+		dsn = fmt.Sprintf(
+			"host=database_test user=%s password=%s dbname=mock port=%s sslmode=disable TimeZone=Asia/Taipei",
+			dbUser, dbPassword, dbPort,
+		)
+	} else {
+		dsn = fmt.Sprintf(
+			"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Taipei",
+			dbHost, dbUser, dbPassword, dbName, dbPort,
+		)
+	}
 
 	var client *gorm.DB
 	client, err := gorm.Open(psql.Open(dsn), &gorm.Config{})
@@ -52,15 +61,15 @@ func main() {
 		db.Close()
 	}()
 	m := gormigrate.New(client, gormigrate.DefaultOptions, []*gormigrate.Migration{
-		// {
-		// 	ID: "202104082324",
-		// 	Migrate: func(tx *gorm.DB) error {
-		// 		return tx.AutoMigrate(&postgres.User{})
-		// 	},
-		// 	Rollback: func(tx *gorm.DB) error {
-		// 		return tx.Migrator().DropTable("users")
-		// 	},
-		// },
+		{
+			ID: "202104141236",
+			Migrate: func(tx *gorm.DB) error {
+				return tx.AutoMigrate(&postgres.Video{})
+			},
+			Rollback: func(tx *gorm.DB) error {
+				return tx.Migrator().DropTable("videos")
+			},
+		},
 	})
 
 	if *upgradeTo != "" {

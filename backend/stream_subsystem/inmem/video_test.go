@@ -1,8 +1,8 @@
 package inmem
 
 import (
-	"testing"
 	"stream_subsystem"
+	"testing"
 )
 
 func TestStore(t *testing.T) {
@@ -68,6 +68,23 @@ func TestFindAll(t *testing.T) {
 		"ID": stream_subsystem.VideoID("A"),
 	})
 
+	if len(dbVideos) != 1 {
+		t.Errorf("There should be one video")
+	}
+}
+
+func TestDelete(t *testing.T) {
+	var(
+		v1 = stream_subsystem.Video{ID: stream_subsystem.VideoID("A")}
+		v2 = stream_subsystem.Video{ID: stream_subsystem.VideoID("B")}
+	)
+
+	r := NewVideoRepository()
+	r.Store(&v1)
+	r.Store(&v2)
+
+	r.Delete(stream_subsystem.VideoID("A"))
+	dbVideos := r.FindAll(nil)
 	if len(dbVideos) != 1 {
 		t.Errorf("There should be one video")
 	}

@@ -30,13 +30,22 @@ func main() {
 
 		upgradeTo = flag.String("upgrade", "", "the revision of the db to upgrade to")
 		downgradeTo = flag.String("downgrade", "", "the revision of the db to downgrade to")
+		forMock = flag.Bool("mock", false, "migrate for mock")
 	)
 
 	flag.Parse()
-	dsn := fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Taipei",
-		dbHost, dbUser, dbPassword, dbName, dbPort,
-	)
+	var dsn string
+	if *forMock {
+		dsn = fmt.Sprintf(
+			"host=database_test user=%s password=%s dbname=mock port=%s sslmode=disable TimeZone=Asia/Taipei",
+			dbUser, dbPassword, dbPort,
+		)
+	} else {
+		dsn = fmt.Sprintf(
+			"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Taipei",
+			dbHost, dbUser, dbPassword, dbName, dbPort,
+		)
+	}
 
 	var client *gorm.DB
 	client, err := gorm.Open(psql.Open(dsn), &gorm.Config{})

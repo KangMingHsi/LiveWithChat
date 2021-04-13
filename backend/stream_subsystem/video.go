@@ -18,6 +18,7 @@ type Video struct {
 	Title string
 	Description string
 	Duration   time.Duration
+	Type    string
 	Likes   int
 	Dislikes int
 	OwnerID string
@@ -32,6 +33,14 @@ func (v Video) ConvertToMap() map[string]interface{} {
 		"Likes": v.Likes,
 		"Dislikes": v.Dislikes,
 		"OwnerID": v.OwnerID,
+		"Type": v.Type,
+	}
+}
+
+// NewVideo creates a video instance
+func NewVideo() *Video {
+	return &Video{
+
 	}
 }
 
@@ -41,6 +50,7 @@ type VideoRepository interface {
 	Store(video *Video) error
 	Find(id VideoID) (*Video, error)
 	FindAll(map[string]interface{}) []*Video
+	Delete(id VideoID) error
 }
 
 // ErrUnknownVideo is used when a video could not be found.
