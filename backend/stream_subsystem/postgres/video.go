@@ -83,7 +83,7 @@ func (r *videoRepository) FindAll(conditions map[string]interface{}) []*stream_s
 		}	
 	}
 	query.Find(&vRows)
-	print(len(vRows))
+
 	vs := make([]*stream_subsystem.Video, len(vRows))
 	for index, vRow := range vRows {
 		vs[index] = toVideoModel(vRow)
