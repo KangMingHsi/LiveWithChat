@@ -10,7 +10,6 @@ import (
 	"auth_subsystem/server"
 	"flag"
 	"fmt"
-	"logger"
 	"strconv"
 	"time"
 

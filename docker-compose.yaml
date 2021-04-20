@@ -49,10 +49,24 @@ services:
     environment:
       - PORT=8080
       - SECRET=secret
+      - TOKEN_DURATION=300
     volumes:
       - ./backend/auth_subsystem:/go/src/auth_subsystem
     tty: true
     command: "/go/src/auth_subsystem/launch.sh"
+  
+  stream_subsystem:
+    image: golang:latest
+    container_name: stream_service
+    networks:
+      - backend
+    environment:
+      - PORT=8080
+      - SECRET=secret
+    volumes:
+      - ./backend/stream_subsystem:/go/src/stream_subsystem
+    tty: true
+    command: "/go/src/stream_subsystem/launch.sh -l -i"
 
   cache:
     image: redis:latest

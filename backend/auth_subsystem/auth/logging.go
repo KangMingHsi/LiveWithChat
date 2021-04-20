@@ -54,7 +54,7 @@ func (s *loggingService) Register(email, gender, nickname, password string) (id 
 	return s.next.Register(email, gender, nickname, password)
 }
 
-func (s *loggingService) Check(accessToken string) (err error) {
+func (s *loggingService) Check(accessToken string) (uid auth_subsystem.MemberID, level int, err error) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "Check",

@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 	"stream_subsystem"
 	"stream_subsystem/cmd"
 	"stream_subsystem/inmem"
@@ -35,6 +36,7 @@ func main() {
 		dbName = cmd.EnvString("DB_NAME", defaultDBName)
 
 		inmemory          = flag.Bool("inmem", false, "use in-memory repositories")
+		localContent      = flag.Bool("local", false, "use local storage")
 	)
 	flag.Parse()
 
@@ -43,7 +45,13 @@ func main() {
 		contentController stream_subsystem.ContentController
 	)
 
-	contentController = local.NewContentController("/go/src/server/stream_subsystem/storage")
+	if *localContent {
+		path, err := os.Getwd()
+		if err != nil {
+			panic(err)
+		}
+		contentController = local.NewContentController(fmt.Sprintf("%s/storage", path))
+	}
 
 	if *inmemory {
 		videoDB = inmem.NewVideoRepository()

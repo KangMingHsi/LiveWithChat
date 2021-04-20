@@ -2,12 +2,10 @@ package main
 
 import (
 	"fmt"
-	"net/http/httputil"
 	"net/url"
 	"os"
 
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"api_gateway/server"
 )
 
 const (
@@ -15,6 +13,9 @@ const (
 	
 	defaultAuthHost			 = "auth_subsystem"
 	defaultAuthPort			 = "8080"
+
+	defaultStreamHost		 = "stream_subsystem"
+	defaultStreamPort		 = "8080"
 )
 
 func main() {
@@ -23,21 +24,24 @@ func main() {
 
 		authHost = envString("AUTH_HOST", defaultAuthHost)
 		authPort = envString("AUTH_PORT", defaultAuthPort)
-	)
 
-	e := echo.New()
-	// Root level middleware
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
+		streamHost = envString("STREAM_HOST", defaultStreamHost)
+		streamPort = envString("STREAM_PORT", defaultStreamPort)
+	)
 	
-	authProxy := httputil.NewSingleHostReverseProxy(&url.URL{
+	authURL := &url.URL{
 		Scheme: "http",
 		Host:   fmt.Sprintf("%s:%s", authHost, authPort),
-	})
+	}
 
-	e.Any("/api/auth/*", echo.WrapHandler(authProxy))
-	e.Logger.Fatal(
-		e.Start(fmt.Sprintf(":%s", addr)))
+	streamURL := &url.URL{
+		Scheme: "http",
+		Host:   fmt.Sprintf("%s:%s", streamHost, streamPort),
+	}
+	
+	srv := server.New(authURL, streamURL)
+	srv.Host.Logger.Fatal(
+		srv.Host.Start(fmt.Sprintf(":%s", addr)))
 }
 
 func envString(env, fallback string) string {

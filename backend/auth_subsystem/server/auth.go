@@ -73,7 +73,7 @@ func (h *authHandler) logout(c echo.Context) error {
 		return toEchoHttpError(err)
 	}
 
-	err = h.s.Check(accessToken)
+	_, _, err = h.s.Check(accessToken)
 	if err != nil {
 		return toEchoUnauthorizedError(err)
 	}
@@ -92,12 +92,15 @@ func (h *authHandler) check(c echo.Context) error {
 		return toEchoHttpError(err)
 	}
 
-	err = h.s.Check(accessToken)
+	uid, level, err := h.s.Check(accessToken)
 	if err != nil {
 		return toEchoUnauthorizedError(err)
 	}
 
-	return c.String(http.StatusOK, "Is valid")
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"user_id": uid,
+		"role_level": level,
+	})
 }
 
 func (h *authHandler) refresh(c echo.Context) error {
@@ -122,7 +125,7 @@ func (h *authHandler) changePassword(c echo.Context) error {
 		return toEchoHttpError(err)
 	}
 
-	err = h.s.Check(accessToken)
+	_, _, err = h.s.Check(accessToken)
 	if err != nil {
 		return toEchoUnauthorizedError(err)
 	}

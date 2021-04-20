@@ -1,4 +1,4 @@
-package auth_subsystem
+package stream_subsystem
 
 import "errors"
 

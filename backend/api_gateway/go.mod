@@ -1,4 +1,4 @@
-module server/api_gateway
+module api_gateway
 
 go 1.16
 

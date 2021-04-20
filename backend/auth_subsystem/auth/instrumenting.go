@@ -51,7 +51,7 @@ func (s *instrumentingService) Register(email, gender, nickname, password string
 	return s.next.Register(email, gender, nickname, password)
 }
 
-func (s *instrumentingService) Check(accessToken string) (err error) {
+func (s *instrumentingService) Check(accessToken string) (uid auth_subsystem.MemberID, level int, err error) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "Check").Add(1)
 		s.requestLatency.With("method", "Check").Observe(time.Since(begin).Seconds())

@@ -12,18 +12,22 @@ function usage() {
     echo "-h     Print this Help."
     echo "-i     Launch db in memory"
     echo "-m     Migrate database first"
+    echo "-l     Use local storage"
     echo
 }
 
 function main() {
     args=""
-    while getopts "?him" option; do
+    while getopts "?himl" option; do
         case $option in
             m)
                 go run cmd/migrate/main.go
                 exit;;
             i)
                 args="${args} -inmem"
+                ;;
+            l)
+                args="${args} -local"
                 ;;
             h|?)
                 usage

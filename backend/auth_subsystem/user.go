@@ -116,6 +116,13 @@ func (user *User) ConvertToMap() map[string]interface{} {
 	}
 }
 
+func (user *User) RoleLevel() int {
+	if user.Role == "normal" {
+		return 1
+	}
+	return 0
+}
+
 // Change user password.
 func (user *User) ChangePassword(newPassword string) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)

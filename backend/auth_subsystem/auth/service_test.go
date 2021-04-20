@@ -62,7 +62,7 @@ func TestLogin(t *testing.T) {
 }
 
 func TestCheckAccessToken(t *testing.T) {
-	err := s.Check("access")
+	_, _, err := s.Check("access")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -130,7 +130,7 @@ func (r *mockUserRepository) FindAll() []*auth_subsystem.User {
 type mockTokenManager struct {}
 
 func (s *mockTokenManager) Generate(
-		id auth_subsystem.MemberID, email, role string) (string, error) {
+		id string, email, role string) (string, error) {
 	return "access", nil
 }
 
@@ -158,7 +158,7 @@ func (c *mockUserClaim) GetKey() interface{} {
 
 func (c *mockUserClaim) ConvertToMap() map[string]interface{}{
 	return map[string]interface{}{
-		"UserID": auth_subsystem.MemberID("0"),
+		"UserID": "0",
 		"Email": email,
 		"Role": "normal",
 		"IssuedAt": time.Now().Unix(),

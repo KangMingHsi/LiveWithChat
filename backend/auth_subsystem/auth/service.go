@@ -23,7 +23,7 @@ type Service interface {
 	Register(email, gender, nickname, password string) (auth_subsystem.MemberID, error)
 
 	// Check token whether it is still valid.
-	Check(accessToken string) error
+	Check(accessToken string) (auth_subsystem.MemberID, int, error)
 
 	// Refresh token
 	Refresh(refreshToken string) (string, error)
@@ -59,7 +59,7 @@ func (s *service) Login(email string, password string, ipAddr string) (string, e
 	}
 
 	accessString, err := s.tokenManager.Generate(
-		user.ID, user.Email, user.Role)
+		string(user.ID), user.Email, user.Role)
 	if err != nil {
 		return "", err
 	}
@@ -133,29 +133,29 @@ func (s *service) Logout(accessToken string) error {
 	return nil
 }
 
-func (s *service) Check(accessToken string) error {
+func (s *service) Check(accessToken string) (auth_subsystem.MemberID, int, error) {
 	claim, err := s.tokenManager.Verify(accessToken)
 	if err != nil {
-		return err
+		return "", 0, err
 	}
 
 	email := claim.GetKey().(string)
 	user, err := s.userDB.Find(email)
 	if err != nil {
-		return err
+		return "", 0, err
 	}
 
 	claimMap := claim.ConvertToMap()
 	if _, ok := claimMap["IssuedAt"]; !ok {
-		return auth_subsystem.ErrNoIssuedAt
+		return "", 0, auth_subsystem.ErrNoIssuedAt
 	}
 
 	if user.LimitationPeriod.Unix() > claimMap["IssuedAt"].(int64) ||
 	   !user.IsOnline {
-		return auth_subsystem.ErrUserShouldLogin
+		return "", 0, auth_subsystem.ErrUserShouldLogin
 	}
 
-	return nil
+	return user.ID, user.RoleLevel(), nil
 }
 
 func (s *service) Refresh(refreshToken string) (string, error) {
@@ -186,7 +186,7 @@ func (s *service) Refresh(refreshToken string) (string, error) {
 	}
 
 	return s.tokenManager.Generate(
-		claimMap["UserID"].(auth_subsystem.MemberID),
+		claimMap["UserID"].(string),
 		claimMap["Email"].(string),
 		claimMap["Role"].(string))
 }

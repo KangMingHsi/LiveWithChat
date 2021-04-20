@@ -44,7 +44,18 @@ func TestLogin(t *testing.T) {
 	}
 }
 
-func TestChangePassword(t * testing.T) {
+func TestRoleLevel(t *testing.T) {
+	var (
+		user = User{Role: "normal"}
+	}
+
+	if user.RoleLevel() != 1 {
+		t.Errorf("normal should tranfer to 1")
+	}
+}
+
+
+func TestChangePassword(t *testing.T) {
 	var (
 		user = User{}
 		ipString = "127.0.0.1"
