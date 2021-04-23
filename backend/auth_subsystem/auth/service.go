@@ -59,7 +59,7 @@ func (s *service) Login(email string, password string, ipAddr string) (string, e
 	}
 
 	accessString, err := s.tokenManager.Generate(
-		string(user.ID), user.Email, user.Role)
+		string(user.ID), user.Email, user.RoleLevel())
 	if err != nil {
 		return "", err
 	}
@@ -188,7 +188,7 @@ func (s *service) Refresh(refreshToken string) (string, error) {
 	return s.tokenManager.Generate(
 		claimMap["UserID"].(string),
 		claimMap["Email"].(string),
-		claimMap["Role"].(string))
+		claimMap["RoleLevel"].(int))
 }
 
 func (s *service) ChangePassword(newPassword, accessToken string) error {

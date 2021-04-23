@@ -19,7 +19,7 @@ var ErrInvalidClaims = errors.New("invalid token claims")
 type userClaims struct {
 	jwt.StandardClaims
 	Email  string
-	Role   string
+	RoleLevel   int
 }
 
 func (c *userClaims) GetKey() interface{} {
@@ -30,7 +30,7 @@ func (c *userClaims) ConvertToMap() map[string]interface{} {
 	return map[string]interface{}{
 		"UserID": c.Audience,
 		"Email": c.Email,
-		"Role": c.Role,
+		"RoleLevel": c.RoleLevel,
 		"IssuedAt": c.IssuedAt,
 	}
 }
@@ -41,10 +41,10 @@ type tokenManager struct {
 }
 
 func (manager *tokenManager) Generate(
-		id string, email, role string) (
+		id, email string, roleLevel int) (
 		accessTokenString string, err error) {
 	accessTokenString, err = createToken(
-		id, email, role,
+		id, email, roleLevel,
 		manager.tokenDuration,
 		manager.secretKey)
 	if err != nil {
@@ -116,8 +116,7 @@ func NewTokenManager(
 	}
 }
 
-func createToken(id string,
-				 email, role string,
+func createToken(id, email string, roleLevel int,
 				 tokenDuration time.Duration,
 				 secretKey string) (string, error) {
 	claim := userClaims{
@@ -128,7 +127,7 @@ func createToken(id string,
 			Audience: id,
 		},
 		Email: email,
-		Role: role,
+		RoleLevel: roleLevel,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claim)

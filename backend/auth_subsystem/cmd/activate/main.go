@@ -4,7 +4,7 @@ import (
 	"auth_subsystem"
 	"auth_subsystem/auth"
 	"auth_subsystem/cmd"
-	"auth_subsystem/inmen"
+	"auth_subsystem/inmem"
 	"auth_subsystem/jwt"
 	"auth_subsystem/postgres"
 	"auth_subsystem/server"
@@ -55,7 +55,7 @@ func main() {
 	)
 
 	if *inmemory {
-		users = inmen.NewUserRepository()
+		users = inmem.NewUserRepository()
 	} else {
 		dsn := fmt.Sprintf(
 			"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Taipei",

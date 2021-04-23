@@ -33,11 +33,11 @@ func New(authURL, streamURL *url.URL) *Server {
 		&url.URL{
 			Path: fmt.Sprintf("%s://%s/api/auth/check", authURL.Scheme, authURL.Host),
 		},
-		map[string]int{
-			"GET/api/v1/stream/videos": 0,
-			"PATCH/api/v1/stream/videos": 1,
-			"POST/api/v1/stream/videos": 1,
-			"DELETE/api/v1/stream/videos": 1,
+		map[string]bool{
+			"GET/api/v1/stream/videos": false,
+			"PATCH/api/v1/stream/videos": true,
+			"POST/api/v1/stream/videos": true,
+			"DELETE/api/v1/stream/videos": true,
 		},
 	)
 	v1Stream := v1Group.Group("/stream")
