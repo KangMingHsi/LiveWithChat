@@ -1,4 +1,4 @@
-package inmen
+package inmem
 
 import (
 	"auth_subsystem"

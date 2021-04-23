@@ -130,18 +130,18 @@ func (r *mockUserRepository) FindAll() []*auth_subsystem.User {
 type mockTokenManager struct {}
 
 func (s *mockTokenManager) Generate(
-		id string, email, role string) (string, error) {
+		id, email string, roleLevel int) (string, error) {
 	return "access", nil
 }
 
-func (s *mockTokenManager) Verify(accessToken string,) (auth_subsystem.UserClaims, error) {
+func (s *mockTokenManager) Verify(accessToken string) (auth_subsystem.UserClaims, error) {
 	if accessToken != "access"{
 		return &claim, errors.New("access token is invalid")
 	}
 	return &claim, nil
 }
 
-func (s *mockTokenManager) VerifyWithoutExpired(accessToken string,) (auth_subsystem.UserClaims, error) {
+func (s *mockTokenManager) VerifyWithoutExpired(accessToken string) (auth_subsystem.UserClaims, error) {
 	if accessToken != "access"{
 		return &claim, errors.New("access token is invalid")
 	}
@@ -160,7 +160,7 @@ func (c *mockUserClaim) ConvertToMap() map[string]interface{}{
 	return map[string]interface{}{
 		"UserID": "0",
 		"Email": email,
-		"Role": "normal",
+		"RoleLevel": 1,
 		"IssuedAt": time.Now().Unix(),
 	}
 }

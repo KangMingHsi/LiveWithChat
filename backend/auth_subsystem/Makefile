@@ -4,6 +4,13 @@ APP=auth_subsystem
 test: clean
 	go test ./...
 
+.PHONY: test-without-io
+test-without-io: clean
+	go test ./inmem/.
+	go test ./jwt/.
+	go test ./auth/.
+	go test .
+
 .PHONY: clean
 clean:
 	go clean

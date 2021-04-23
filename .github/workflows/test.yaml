@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-on: [push, pull_request]
-=======
 on: [pull_request]
->>>>>>> a44ab555f6d577c9bd18692c5563fe45059afba6
 name: Test
 jobs:
   test:
@@ -18,12 +14,9 @@ jobs:
         go-version: ${{ matrix.go-version }}
     - name: Checkout code
       uses: actions/checkout@v2
-    - name: Setup path
-      run: |
-        PROJECT_ROOT=$(echo ${PWD})
     - name: Test
       run: |
-        make test-backend
+        make test-backend-without-io
 
   # test-cache:
   #   runs-on: ubuntu-latest

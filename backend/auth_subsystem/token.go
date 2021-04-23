@@ -14,7 +14,7 @@ type UserClaims interface {
 // TokenManager is to generate and verify token.
 type TokenManager interface {
 	// Generate creates token.
-	Generate(id, email, role string) (string, error)
+	Generate(id, email string, roleLevel int) (string, error)
 
 	// Verify checks token.
 	Verify(token string) (UserClaims, error)

@@ -11,16 +11,10 @@ type UserClaims interface {
 	ConvertToMap () map[string]interface{}
 }
 
-// TokenManager is to generate and verify token.
+// TokenManager is to verify token.
 type TokenManager interface {
-	// Generate creates token.
-	Generate(id, email, role string) (string, error)
-
 	// Verify checks token.
 	Verify(token string) (UserClaims, error)
-
-	// Verify checks without expire time.
-	VerifyWithoutExpired(token string) (UserClaims, error)
 }
 
 // ErrExpiredClaims is returned expired claims.
