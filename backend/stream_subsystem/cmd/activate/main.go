@@ -7,6 +7,7 @@ import (
 	"stream_subsystem"
 	"stream_subsystem/cmd"
 	"stream_subsystem/inmem"
+	"stream_subsystem/jwt"
 	"stream_subsystem/local"
 	"stream_subsystem/postgres"
 	"stream_subsystem/server"
@@ -18,6 +19,7 @@ import (
 
 const (
 	defaultPort              = "8080"
+	defaultSecret			 = "secret"
 	defaultDBHost			 = "database"
 	defaultDBUser			 = "livewithchat"
 	defaultDBPassword		 = "default"
@@ -28,6 +30,7 @@ const (
 func main() {
 	var (
 		addr   = cmd.EnvString("PORT", defaultPort)
+		secretKey = cmd.EnvString("SECRET", defaultSecret)
 
 		dbHost = cmd.EnvString("DB_HOST", defaultDBHost)
 		dbPort = cmd.EnvString("DB_PORT", defaultDBPort)
@@ -43,7 +46,10 @@ func main() {
 	var (
 		videoDB stream_subsystem.VideoRepository
 		contentController stream_subsystem.ContentController
+		tokenManager stream_subsystem.TokenManager
 	)
+
+	tokenManager = jwt.NewTokenManager(secretKey)
 
 	if *localContent {
 		path, err := os.Getwd()
@@ -82,7 +88,7 @@ func main() {
 	var st stream.Service
 	st = stream.NewService(videoDB, contentController)
 
-	srv := server.New(st)
+	srv := server.New(st, tokenManager)
 	srv.Host.Logger.Fatal(
 		srv.Host.Start(fmt.Sprintf(":%s", addr)))
 }
