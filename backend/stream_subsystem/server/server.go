@@ -1,6 +1,7 @@
 package server
 
 import (
+	"stream_subsystem"
 	"stream_subsystem/stream"
 
 	"github.com/labstack/echo/v4"
@@ -15,7 +16,7 @@ type Server struct {
 }
 
 // New returns a new echo server.
-func New(st stream.Service) *Server {
+func New(st stream.Service, tokenManager stream_subsystem.TokenManager) *Server {
 	s := &Server{
 		Stream:  st,
 	}
@@ -24,7 +25,10 @@ func New(st stream.Service) *Server {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	apiG := e.Group("/api")
-	h := streamHandler{s: st}
+	h := streamHandler{
+		s: st,
+		tokenManager: tokenManager,
+	}
 	h.addGroup(apiG)
 
 	s.Host = e

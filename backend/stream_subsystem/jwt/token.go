@@ -18,7 +18,7 @@ var ErrInvalidClaims = errors.New("invalid token claims")
 type userClaims struct {
 	jwt.StandardClaims
 	Email  string
-	RoleLevel   string
+	RoleLevel   int
 }
 
 func (c *userClaims) GetKey() interface{} {

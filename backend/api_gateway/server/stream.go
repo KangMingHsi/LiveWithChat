@@ -45,11 +45,15 @@ func (h *StreamHandler) StreamProcess(next echo.HandlerFunc) echo.HandlerFunc {
 			// if err != nil {
 			// 	c.String(http.StatusForbidden, err.Error())
 			// }
-			// var data map[string]interface{} // TopTracks
+			// var data map[string]interface{}
 			// err = json.Unmarshal(body, &data)
 			// if err != nil {
 			// 	c.String(http.StatusForbidden, err.Error())
 			// }
+
+			// roleLevel, _ := strconv.P.ParseFloat(data["role_level"].(float64), 64)
+			// h.authReq.PostForm.Add("user_id", data["user_id"].(string))
+			// h.authReq.PostForm.Add("role_level", roleLevel)
 		}
 		return next(c)
 	}
