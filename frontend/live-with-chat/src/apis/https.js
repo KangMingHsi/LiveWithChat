@@ -15,6 +15,7 @@ async function errorHandle(status, msg, error) {
                 store.dispatch('auth/setAuth', {
                     "token": data.token,
                     "isLogin": true,
+                    "id": data.user_id,
                 })
             }).catch(() => {
                 store.dispatch('auth/setAuth', {
@@ -79,6 +80,8 @@ export default function (method, url, data=null) {
         return instance.put(url, data)
     } else if (method == 'delete') {
         return instance.delete(url, {params: data})
+    } else if (method == 'patch') {
+        return instance.patch(url, data)
     } else {
         console.error('unknown method: ' + method)
         return false

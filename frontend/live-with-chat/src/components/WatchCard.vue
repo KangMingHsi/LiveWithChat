@@ -9,7 +9,7 @@
         src="https://placekitten.com/400/400"
       >
       </v-img>
-      <small class="watch-date">{{ watch.date }}</small>
+      <small class="watch-duration">{{ toTimeString() }}</small>
       <v-row
         align="start"
         dense
@@ -33,7 +33,7 @@
             align="center"
           >
             <div class="ellipsis">
-              <h2 class="is-size-4 has-text-weight-bold">{{ watch.name }}</h2>
+              <h2 class="is-size-4 has-text-weight-bold">{{ watch.Title }}</h2>
             </div>
           </v-row>
           <v-row
@@ -41,7 +41,7 @@
             align="center"
           >
             <div class="ellipsis">
-              <span>{{ watch.location }}</span>
+              <span>{{ watch.OwnerID }}</span>
             </div>
           </v-row>
         </v-col>
@@ -54,7 +54,26 @@
   export default {
     props: [
       'watch'
-    ] 
+    ],
+    methods: {
+      toTimeString() {
+        var seconds = Math.round(this.watch.Duration / 1000000000)
+        var hours = parseInt( seconds / 3600 );
+        seconds = seconds % 3600;
+
+        var minutes = parseInt( seconds / 60 );
+        seconds = seconds % 60;
+
+        minutes = (minutes < 10) ? "0" + minutes : minutes;
+        seconds = (seconds < 10) ? "0" + seconds : seconds;
+        var hms = minutes+":"+seconds;
+        if (hours > 0) {
+          hours = (hours < 10) ? "0" + hours : hours;
+          hms = hours+":"+hms
+        }
+        return hms
+      },
+    },
   }
 </script>
 <style lang="scss" scoped>
@@ -80,7 +99,7 @@
       left: 10px;
     }
   }
-  .watch-date {
+  .watch-duration {
     background-color: #151515;
     color: #FFF;
     font-size: .75em;

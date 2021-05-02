@@ -56,6 +56,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
+		println("Current Path: " + path)
 		contentController = local.NewContentController(fmt.Sprintf("%s/storage", path))
 	}
 

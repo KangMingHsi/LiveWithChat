@@ -24,7 +24,7 @@ func NewInstrumentingService(counter metrics.Counter, latency metrics.Histogram,
 }
 
 func (s *instrumentingService) Login(email string, password string, ipAddr string) (
-		accessToken string, err error) {
+		loginInfo map[string]string, err error) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "Login").Add(1)
 		s.requestLatency.With("method", "Login").Observe(time.Since(begin).Seconds())

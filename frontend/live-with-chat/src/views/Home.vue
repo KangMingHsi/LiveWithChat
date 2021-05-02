@@ -31,13 +31,18 @@
       </div>
     </div>
   </section>
-  <WatchesList />
+  <div class="events container">
+    <h2 class="subtitle is-3">
+      Check out our videos or streams
+    </h2>
+    <WatchesList />
+  </div>
 </div>
 </template>
 
 <script>
 import WatchesList from '@/components/WatchesList';
-import RegisterDialog from '../components/RegisterDialog'
+import RegisterDialog from '@/components/RegisterDialog'
 
 export default {
   name: 'home',
@@ -102,5 +107,9 @@ export default {
   }
   .is-xl {
     font-size: 1.7rem;
+  }
+  .events {
+    margin-top: 100px;
+    text-align: center;
   }
 </style>

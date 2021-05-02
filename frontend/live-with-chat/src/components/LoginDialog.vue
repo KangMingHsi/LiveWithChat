@@ -1,55 +1,70 @@
 <template>
-  <div class="text-center">
-    <v-row class="container">
-      <v-col class="col"> 
-        <v-card
-         class="signin"
-         width="600"
-        >
-          <v-card-title>
-            <h2>LOGIN</h2>
-          </v-card-title>
-          
-          <validation-observer ref="observer">
-            <v-form @submit.prevent="onSubmit">
-              <v-card-text>
-                <validation-provider v-slot="{ errors }" name="Email" rules="required|email">
-                  <v-text-field
-                    v-model="email"
-                    :error-messages="errors"
-                    label="Email"
-                    required
-                    outlined
-                    filled
-                    dense
-                  ></v-text-field>
-                </validation-provider>
-                <validation-provider v-slot="{ errors }" name="Password" rules="required">
-                  <v-text-field
-                    v-model="password"
-                    :error-messages="errors"
-                    label="Password"
-                    :append-icon="showPass ? 'mdi-eye' : 'mdi-eye-off'"
-                    @click:append="showPass = !showPass"
-                    required
-                    outlined
-                    dense
-                    filled
-                    :type="showPass ? 'text' : 'password'"
-                  ></v-text-field>
-                </validation-provider>
-              </v-card-text>
-              <v-card-actions class="text-center">
-                <v-btn class="signin-btn" type="submit" rounded color="blue-grey" dark>
-                  Sign in
-                </v-btn>
-              </v-card-actions>
-            </v-form>
-          </validation-observer>
-        </v-card>
-      </v-col>
-    </v-row>
-  </div>
+  <v-dialog
+    v-model="showLogin"
+    width="500"
+  >
+    <template v-slot:activator="{ on, attrs }">
+      <div class="buttons"
+        v-bind="attrs"
+        v-on="on"
+      >
+        <a class="button is-dark">
+          <strong>Sign In</strong>
+        </a>
+      </div>
+    </template>
+    <div class="text-center">
+      <v-row class="container">
+        <v-col class="col"> 
+          <v-card
+          class="signin"
+          width="600"
+          >
+            <v-card-title>
+              <h2>LOGIN</h2>
+            </v-card-title>
+            
+            <validation-observer ref="observer">
+              <v-form @submit.prevent="onSubmit">
+                <v-card-text>
+                  <validation-provider v-slot="{ errors }" name="Email" rules="required|email">
+                    <v-text-field
+                      v-model="email"
+                      :error-messages="errors"
+                      label="Email"
+                      required
+                      outlined
+                      filled
+                      dense
+                    ></v-text-field>
+                  </validation-provider>
+                  <validation-provider v-slot="{ errors }" name="Password" rules="required">
+                    <v-text-field
+                      v-model="password"
+                      :error-messages="errors"
+                      label="Password"
+                      :append-icon="showPass ? 'mdi-eye' : 'mdi-eye-off'"
+                      @click:append="showPass = !showPass"
+                      required
+                      outlined
+                      dense
+                      filled
+                      :type="showPass ? 'text' : 'password'"
+                    ></v-text-field>
+                  </validation-provider>
+                </v-card-text>
+                <v-card-actions class="text-center">
+                  <v-btn class="signin-btn" type="submit" rounded color="blue-grey" dark>
+                    Sign in
+                  </v-btn>
+                </v-card-actions>
+              </v-form>
+            </validation-observer>
+          </v-card>
+        </v-col>
+      </v-row>
+    </div>
+  </v-dialog>
 </template>
 
 <script>
@@ -75,10 +90,16 @@ export default {
     ValidationObserver
   },
   data: () => ({
+    showLogin: false,
     email: '',
     password: null,
     showPass: false
   }),
+  watch: {
+    showLogin: function(val) {
+      val || this.clear()
+    },
+  },
   methods: {
     async onSubmit() {
       const valid = await this.$refs.observer.validate()
@@ -94,10 +115,11 @@ export default {
           this.$store.dispatch('auth/setAuth', {
             "token": data.token,
             "isLogin": true,
+            "id": data.user_id,
           })
           this.clear()
-          this.$emit('closeLogin')
-          // this.$router.push('/')
+          // this.$emit('closeLogin')
+          this.showLogin = false
         }).catch((error) => {
           console.log(error)
         }) // action to login

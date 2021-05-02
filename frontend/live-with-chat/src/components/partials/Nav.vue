@@ -15,76 +15,41 @@
       <router-link to="/" class="navbar-item">Home</router-link>
       <router-link to="/about" class="navbar-item">About</router-link>
     </div>
-    <div class="navbar-end-login"
-     v-if="!isLogin"
-    >
-      <v-dialog
-       v-model="showLogin"
-       width="500"
-      >
-        <template v-slot:activator="{ on, attrs }">
-          <div class="buttons"
-           v-bind="attrs"
-           v-on="on"
-          >
-            <a class="button is-dark">
-              <strong>Sign In</strong>
-            </a>
-          </div>
-        </template>
-        <LoginDialog
-          ref="loginDialog"
-          @closeLogin="closeLogin"
-        />
-      </v-dialog>
-    </div>
-    <div class="navbar-end-logout"
-     v-if="isLogin"
-    >
-      <a class="button is-dark" @click="logout">
-        <strong>Sign Out</strong>
-      </a>
+    <div class="navbar-end">
+      <LoginDialog
+        v-if="!isLogin"
+      />
+      <AccountMenu
+        v-else
+      />
     </div>
   </div>
 </nav>
 </template>
 <script>
-import LoginDialog from '../LoginDialog'
+  import LoginDialog from '../LoginDialog'
+  import AccountMenu from '../AccountMenu'
 
-export default {
-  name: 'Nav',
-  components:{
-    LoginDialog
-  },
-  data() {
-    return {
-      showLogin: false,
-    }
-  },
-  computed: {
-    isLogin() {
-      return this.$store.state.auth.isLogin
-    }
-  },
-  watch: {
-    showLogin: function(val) {
-      val || this.$refs.loginDialog.clear()
+  export default {
+    name: 'Nav',
+    components: {
+      LoginDialog,
+      AccountMenu,
     },
-  },
-  methods: {
-    closeLogin() {
-      this.showLogin = false
+    data() {
+      return {
+      }
     },
-    logout() {
-      this.$api.auth.logout().finally(() => {
-        this.$store.dispatch('auth/setAuth', {
-          "token": "",
-          "isLogin": false,
-        })
-      })
-    }
-  },
-}
+    computed: {
+      isLogin() {
+        return this.$store.state.auth.isLogin
+      }
+    },
+    watch: {
+    },
+    methods: {
+    },
+  }
 </script>
 <style lang="scss" scoped>
   nav {
