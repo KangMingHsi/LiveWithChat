@@ -56,7 +56,9 @@ services:
     command: "/go/src/auth_subsystem/launch.sh"
   
   stream_subsystem:
-    image: golang:latest
+    build:
+      context: ./containers
+      dockerfile: go_ffmpeg_dockerfile
     container_name: stream_service
     networks:
       - backend

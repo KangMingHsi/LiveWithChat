@@ -1,64 +1,121 @@
 <template>
-  <div class="events container">
-    <h2 class="subtitle is-3">
-    Check out our videos or streams
-    </h2>
-    <div class="columns is-multiline">
-      <div v-for="watch in watches" :watch="watch" :key="watch.id" class="column is-one-quarter">
-        <router-link :to="'/watch/' + watch.id">
-          <WatchCard :watch="watch" />
-        </router-link>
+  <div class="columns is-multiline">
+    <div v-for="watch in watches" :key="watch.ID" class="column is-one-quarter">
+      <div
+        class="watch-card"
+      >
+        <v-menu>
+          <template v-slot:activator="{ on, attrs }">
+            <div
+              v-bind="attrs"
+              @contextmenu.stop="showAction($event, watch.ID, on)"
+              @click="to(watch.ID)"
+            >
+              <WatchCard :watch="watch" />
+            </div>
+          </template>
+          <v-list>
+            <v-list-item
+              v-for="item in videoItems"
+              :key="item.title"
+              link
+              @click.stop="item.action(watch)"
+            >
+              <v-list-item-title>
+                {{ item.title }}
+              </v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
       </div>
+    </div>
+    <div
+      class="update-dialog"
+    >
+      <UpdateVideoDialog
+        ref="updateDialog"
+        @get-videos="getVideos"
+      />
+    </div>
+    <div
+      class="delete-dialog"
+    >
+      <DeleteVideoDialog
+        ref="deleteDialog"
+        @get-videos="getVideos"
+      />
     </div>
   </div>
 </template>
 <script>
   import WatchCard from '@/components/WatchCard';
+  import UpdateVideoDialog from '@/components/UpdateVideoDialog'
+  import DeleteVideoDialog from '@/components/DeleteVideoDialog'
   export default {
     name: 'WatchesList',
+    props: [
+      'conditions',
+      'editable',
+    ],
     components : {
-      WatchCard
+      WatchCard,
+      UpdateVideoDialog,
+      DeleteVideoDialog,
     },
     data () {
       return {
-        watch: {},
-        watches: [
+        watches: [],
+        showUpdate: false,
+        showDeletion: false,
+        videoItems: [
           {
-            id: 1,
-            name: 'Charity Ball',
-            category: 'Fundraising',
-            description: 'Spend an elegant night of dinner and dancing with us as we raise money for our new rescue farm.',
-            featuredImage: 'https://placekitten.com/500/500',
-            images: [
-              'https://placekitten.com/500/500',
-              'https://placekitten.com/500/500',
-              'https://placekitten.com/500/500',
-            ],
-            location: '1234 Fancy Ave',
-            date: '12-25-2019',
-            time: '11:30'
+            title: 'Update',
+            action: (w) => {
+              this.$refs.updateDialog.show(w)
+            },
           },
           {
-            id: 2,
-            name: 'Rescue Center Goods Drive GGGGGGGGGGGGGGGGGGGGG',
-            category: 'Adoptions',
-            description: 'Come to our donation drive to help us replenish our stock of pet food, toys, bedding, etc. We will have live bands, games, food trucks, and much more.',
-            featuredImage: 'https://placekitten.com/500/500',
-            images: [
-              'https://placekitten.com/500/500'
-            ],
-            location: '1234 Dog Alley',
-            date: '11-21-2019',
-            time: '12:00'
-          }
-        ]
+            title: 'Delete',
+            action: (w) => {
+              this.$refs.deleteDialog.show(w)
+            },
+          },
+        ],
       }
+    },
+    created() {
+      this.getVideos()
+    },
+    methods: {
+      getVideos() {
+        let query = {}
+        if (this.conditions !== undefined && typeof(this.conditions) === Object) {
+          for (const key in this.conditions) {
+            query[key] = this.conditions[key]
+          }
+        }
+        this.$api.v1.stream.list(
+          query
+        ).then((resp) => {
+          let data = resp.data
+          this.watches = data
+        })
+      },
+      to (id) {
+        this.$router.push('/watch/' + id)
+      },
+      showAction (event, id, on) {
+        if (this.editable) {
+          on.click(event)
+          event.preventDefault()
+        }
+      },
     },
   }
 </script>
 <style lang="scss" scoped>
-  .events {
-    margin-top: 100px;
-    text-align: center;
+  .watch-card {
+    cursor: pointer;
+    width: 15em;
   }
 </style>

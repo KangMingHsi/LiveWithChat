@@ -47,12 +47,12 @@ func TestLogin(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	accessToken, err := s.Login(user.Email, password, "")
+	loginInfo, err := s.Login(user.Email, password, "")
 	if err != nil {
 		t.Errorf("%v", err)
 	}
 
-	if accessToken != "access" {
+	if loginInfo["token"] != "access" {
 		t.Errorf("accessToken is wrong")
 	}
 
@@ -92,12 +92,12 @@ func TestChangePassword(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	accessToken, err := s.Login(user.Email, password, "")
+	loginInfo, err := s.Login(user.Email, password, "")
 	if err != nil {
 		t.Errorf("%v", err)
 	}
 
-	err = s.ChangePassword(newPassword, accessToken)
+	err = s.ChangePassword(newPassword, loginInfo["token"])
 	if err != nil {
 		t.Errorf("%v", err)
 	}

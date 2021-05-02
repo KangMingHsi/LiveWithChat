@@ -14,7 +14,7 @@ var ErrEmailIsUsed = errors.New("email is used")
 // Service is the interface that provides authorization methods.
 type Service interface {
 	// Login checks user email and password, returns token.
-	Login(email string, password string, ipAddr string) (string, error)
+	Login(email string, password string, ipAddr string) (map[string]string, error)
 
 	// Logout.
 	Logout(accessToken string) error
@@ -38,33 +38,37 @@ type service struct {
 	tokenManager auth_subsystem.TokenManager
 }
 
-func (s *service) Login(email string, password string, ipAddr string) (string, error) {
+func (s *service) Login(email string, password string, ipAddr string) (
+		map[string]string, error) {
 	if email == "" || password == "" {
-		return "", ErrInvalidArgument
+		return nil, ErrInvalidArgument
 	}
 
 	user, err := s.userDB.Find(email)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	err = user.Login(password, ipAddr)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	err = s.userDB.Store(user)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	accessString, err := s.tokenManager.Generate(
 		string(user.ID), user.Email, user.RoleLevel())
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return accessString, nil
+	return map[string]string{
+		"token": accessString,
+		"user_id": string(user.ID),
+	}, nil
 }
 
 func (s *service) Register(

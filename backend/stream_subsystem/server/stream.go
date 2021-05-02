@@ -46,7 +46,7 @@ func (h *streamHandler) middleware(next echo.HandlerFunc) echo.HandlerFunc {
 				return c.String(http.StatusUnauthorized, "role level is not enough.")
 			}
 
-			req.PostForm.Add("user_id", cliamMap["UserID"].(string))
+			c.Set("user_id", cliamMap["UserID"].(string))
 		}
 
 		return next(c)
@@ -62,7 +62,7 @@ func (h *streamHandler) uploadVideo(c echo.Context) error {
 	title := c.FormValue("title")
 	description := c.FormValue("description")
 	videoType := c.FormValue("video_type")
-	uid := c.FormValue("user_id")
+	uid := c.Get("user_id").(string)
 
 	uploadedVideo, err := c.FormFile("video")
 	if err != nil {

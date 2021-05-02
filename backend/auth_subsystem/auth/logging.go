@@ -18,7 +18,7 @@ func NewLoggingService(logger log.Logger, s Service) Service {
 	return &loggingService{logger, s}
 }
 
-func (s *loggingService) Login(email string, password string, ipAddr string) (accessToken string, err error) {
+func (s *loggingService) Login(email string, password string, ipAddr string) (loginInfo map[string]string, err error) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "Login",

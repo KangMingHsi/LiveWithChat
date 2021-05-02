@@ -52,7 +52,7 @@ func (h *authHandler) login(c echo.Context) error {
 	password := values.Get("password")
 	ipAddr := c.RealIP()
 
-	token, err := h.s.Login(
+	loginInfo, err := h.s.Login(
 		email,
 		password,
 		ipAddr,
@@ -62,9 +62,7 @@ func (h *authHandler) login(c echo.Context) error {
 		return toEchoHttpError(err)
 	}
 
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"token": token,
-	})
+	return c.JSON(http.StatusOK, loginInfo)
 }
 
 func (h *authHandler) logout(c echo.Context) error {
