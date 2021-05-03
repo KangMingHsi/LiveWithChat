@@ -14,9 +14,9 @@ type Service interface {
 	// Upload video to server
 	UploadVideo(title, description, ownerID, videoType string, video *multipart.FileHeader) error
 	// Update video information
-	UpdateVideo(vid string, data map[string]interface{}) error
+	UpdateVideo(vid, uid string, data map[string]interface{}) error
 	// Delete video from server
-	DeleteVideo(vid string) error
+	DeleteVideo(vid, uid string) error
 }
 
 type service struct {
@@ -55,19 +55,33 @@ func (s *service) UploadVideo(
 	return err
 }
 
-func (s *service) UpdateVideo(vid string, data map[string]interface{}) error {
+func (s *service) UpdateVideo(vid, uid string, data map[string]interface{}) error {
 	v, err := s.videoDB.Find(stream_subsystem.VideoID(vid))
 	if err != nil {
 		return err
 	}
+
+	if v.OwnerID != uid {
+		return stream_subsystem.ErrNoAuthority
+	}
+
 	newV := v.ConvertFromMap(data)
 	return s.videoDB.Store(newV)
 }
 
 func (s *service) DeleteVideo(
-	vid string,
+	vid, uid string,
 ) error {
-	err := s.contentController.Delete(vid)
+	v, err := s.videoDB.Find(stream_subsystem.VideoID(vid))
+	if err != nil {
+		return err
+	}
+
+	if v.OwnerID != uid {
+		return stream_subsystem.ErrNoAuthority
+	}
+
+	err = s.contentController.Delete(vid)
 	if err != nil {
 		return err
 	}

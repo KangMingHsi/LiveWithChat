@@ -84,3 +84,6 @@ type VideoRepository interface {
 
 // ErrUnknownVideo is used when a video could not be found.
 var ErrUnknownVideo = errors.New("unknown video")
+
+// ErrNoAuthority is used when do something to a video that you cannot.
+var ErrNoAuthority = errors.New("no authority")
