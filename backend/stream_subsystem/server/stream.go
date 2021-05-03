@@ -81,6 +81,7 @@ func (h *streamHandler) updateVideo(c echo.Context) error {
 	if err != nil {
 		return toEchoHttpError(err)
 	}
+	uid := c.Get("user_id").(string)
 
 	var vid string
 	data := map[string]interface{}{}
@@ -91,7 +92,7 @@ func (h *streamHandler) updateVideo(c echo.Context) error {
 			data[key] = values.Get(key)
 		}
 	}
-	err = h.s.UpdateVideo(vid, data)
+	err = h.s.UpdateVideo(vid, uid, data)
 	if err != nil {
 		return toEchoHttpError(err)
 	}
@@ -101,7 +102,8 @@ func (h *streamHandler) updateVideo(c echo.Context) error {
 
 func (h *streamHandler) deleteVideo(c echo.Context) error {
 	vid := c.FormValue("vid")
-	err := h.s.DeleteVideo(vid)
+	uid := c.Get("user_id").(string)
+	err := h.s.DeleteVideo(vid, uid)
 	if err != nil {
 		return toEchoHttpError(err)
 	}
