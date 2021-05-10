@@ -1,18 +1,16 @@
 package main
 
 import (
+	"content_subsystem"
+	"content_subsystem/cmd"
+	"content_subsystem/content"
+	"content_subsystem/inmem"
+	"content_subsystem/local"
+	"content_subsystem/postgres"
+	"content_subsystem/server"
 	"flag"
 	"fmt"
 	"os"
-	"stream_subsystem"
-	"stream_subsystem/cmd"
-	"stream_subsystem/inmem"
-	"stream_subsystem/internal"
-	"stream_subsystem/jwt"
-	"stream_subsystem/local"
-	"stream_subsystem/postgres"
-	"stream_subsystem/server"
-	"stream_subsystem/stream"
 
 	psql "gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -26,14 +24,12 @@ const (
 	defaultDBPassword		 = "default"
 	defaultDBName			 = "livewithchat"
 	defaultDBPort			 = "5432"
-
-	defaultContentUrl		 = "http://content_subsystem:8080/api/v1/content/videos"
 )
 
 func main() {
 	var (
 		addr   = cmd.EnvString("PORT", defaultPort)
-		secretKey = cmd.EnvString("SECRET", defaultSecret)
+		// secretKey = cmd.EnvString("SECRET", defaultSecret)
 
 		dbHost = cmd.EnvString("DB_HOST", defaultDBHost)
 		dbPort = cmd.EnvString("DB_PORT", defaultDBPort)
@@ -41,29 +37,26 @@ func main() {
 		dbPassword = cmd.EnvString("DB_PASSWORD", defaultDBPassword)
 		dbName = cmd.EnvString("DB_NAME", defaultDBName)
 
-		contentUrl		  = cmd.EnvString("CONTENT_URL", defaultContentUrl)
-
 		inmemory          = flag.Bool("inmem", false, "use in-memory repositories")
 		localContent      = flag.Bool("local", false, "use local storage")
 	)
 	flag.Parse()
 
 	var (
-		videoDB stream_subsystem.VideoRepository
-		contentController stream_subsystem.ContentController
-		tokenManager stream_subsystem.TokenManager
+		videoDB content_subsystem.VideoRepository
+		videoStorage content_subsystem.VideoStorage
+		// tokenManager stream_subsystem.TokenManager
 	)
 
-	tokenManager = jwt.NewTokenManager(secretKey)
+// 	tokenManager = jwt.NewTokenManager(secretKey)
 
 	if *localContent {
 		path, err := os.Getwd()
 		if err != nil {
 			panic(err)
 		}
-		contentController = local.NewContentController(fmt.Sprintf("%s/storage", path))
-	} else {
-		contentController = internal.NewContentController(contentUrl)
+		println("Current Path: " + path)
+		videoStorage = local.NewVideoStorage(fmt.Sprintf("%s/storage", path))
 	}
 
 	if *inmemory {
@@ -92,10 +85,10 @@ func main() {
 		videoDB = postgres.NewVideoRepository(client)
 	}
 
-	var st stream.Service
-	st = stream.NewService(videoDB, contentController)
+	var st content.Service
+	st = content.NewService(videoDB, videoStorage)
 
-	srv := server.New(st, tokenManager)
+	srv := server.New(st)
 	srv.Host.Logger.Fatal(
 		srv.Host.Start(fmt.Sprintf(":%s", addr)))
 }
