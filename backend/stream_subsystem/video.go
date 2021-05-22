@@ -24,6 +24,7 @@ type Video struct {
 	OwnerID string
 }
 
+// Convert Video type to map
 func (v Video) ConvertToMap() map[string]interface{} {
 	return map[string]interface{}{
 		"ID": v.ID,
@@ -37,6 +38,7 @@ func (v Video) ConvertToMap() map[string]interface{} {
 	}
 }
 
+// Create Video from map
 func (v *Video) ConvertFromMap(data map[string]interface{}) *Video {
 	if data != nil && len(data) > 0 {
 		val := reflect.ValueOf(v).Elem()

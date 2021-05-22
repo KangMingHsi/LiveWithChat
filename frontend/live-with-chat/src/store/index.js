@@ -2,19 +2,22 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import createPersistedState from "vuex-persistedstate"
 
-import auth from './modules/auth'
+import moduleAuth from './modules/auth'
+import moduleWatch from './modules/watch'
 
 Vue.use(Vuex)
 
 export default new Vuex.Store({
     modules: {
-        auth
+        watch: moduleWatch,
+        auth: moduleAuth,
     },
     plugins: [createPersistedState({
         storage: window.localStorage,
         reducer(val) {
             return {
-                auth: val.auth
+                watch: val.watch,
+                auth: val.auth,
             }
         }
     })]

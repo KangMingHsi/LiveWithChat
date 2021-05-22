@@ -48,3 +48,16 @@ var ErrUnknownVideo = errors.New("unknown video")
 
 // ErrNoAuthority is used when do something to a video that you cannot.
 var ErrNoAuthority = errors.New("no authority")
+
+// VideoScheduler provides access to queue new video and send to worker.
+type VideoScheduler interface {
+	// Submit video id as new task.
+	Submit(id string)
+	// WorkerReady add worker task channel to queue.
+	WorkerReady(w chan string)
+	// Run worker and task matching.
+	Run()
+}
+
+// ProcessVideoFunc provides func to transfer video to hls format
+type ProcessVideoFunc func(string) error

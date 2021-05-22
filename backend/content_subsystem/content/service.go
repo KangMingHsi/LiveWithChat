@@ -17,6 +17,7 @@ type Service interface {
 type service struct {
 	videoDB content_subsystem.VideoRepository
 	videoStorage content_subsystem.VideoStorage
+	videoScheduler content_subsystem.VideoScheduler
 }
 
 func (s *service) Save(id, contentType string, content interface{}) error {
@@ -31,6 +32,8 @@ func (s *service) Save(id, contentType string, content interface{}) error {
 	if err != nil {
 		s.videoStorage.Delete(vid)
 	}
+
+	s.videoScheduler.Submit(id)
 
 	return err
 }
@@ -64,9 +67,11 @@ func (s *service) Delete(id string) error {
 func NewService(
 	videoDB content_subsystem.VideoRepository,
 	videoStorage content_subsystem.VideoStorage,
+	videoScheduler content_subsystem.VideoScheduler,
 ) Service {
 	return &service{
 		videoDB: videoDB,
 		videoStorage: videoStorage,
+		videoScheduler: videoScheduler,
 	}
 }

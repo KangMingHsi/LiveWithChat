@@ -27,7 +27,7 @@ const routes = [
     path: '/watch/:id',
     name: 'watchSingle',
     component: () => import('../views/WatchSingle.vue')
-  }
+  },
 ]
 
 const router = new VueRouter({
