@@ -55,7 +55,7 @@ func (r *videoRepository) Delete(id content_subsystem.VideoID) error {
 }
 
 // NewVideoRepository returns a new instance of a in-memory video repository.
-func NewVideoRepository () content_subsystem.VideoRepository {
+func NewVideoRepository() content_subsystem.VideoRepository {
 	return &videoRepository{
 		videos: make(map[content_subsystem.VideoID]*content_subsystem.Video),
 	}

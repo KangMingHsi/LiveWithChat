@@ -10,3 +10,9 @@ Learning most of the tools, system design and TDD...
 3. Live stream service
 4. frontend - vue.js
 5. more features (maybe subscribe charge...)
+
+# TODO
+1. TLS and https
+2. AWS
+3. Rate Limiter
+4. nginx

@@ -12,7 +12,8 @@ import (
 
 var (
 	fakeID = content_subsystem.VideoID("fake")
-	storage = NewVideoStorage("./test_assets")
+	root = "./test_assets"
+	storage = NewVideoStorage(root)
 	testClipPath = "./test_assets/test.mp4"
 )
 
@@ -68,9 +69,17 @@ func TestGetContentInfo(t *testing.T) {
 	}
 }
 
+func TestTransferToHLS(t *testing.T) {
+	handleFunc := CreateProcessVideoFunc(root)
+	err := handleFunc(string(fakeID))
+	if err != nil {
+		t.Errorf("%v", err)
+	}
+}
+
 func TestDelete(t *testing.T) {
 	err := storage.Delete(fakeID)
 	if err != nil {
-		t.Error(err)
+		t.Errorf("%v", err)
 	}
 }

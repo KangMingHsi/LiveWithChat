@@ -16,7 +16,9 @@ services:
     tty: true
 
   golang:
-    image: golang:latest
+    build:
+      context: ./containers
+      dockerfile: go_ffmpeg_dockerfile
     container_name: go_develop
     networks:
       - backend
@@ -36,8 +38,8 @@ services:
       - PORT=8080
     volumes:
       - ./backend/api_gateway:/go/src/api_gateway
-    ports:
-      - 8000:8080
+    # ports:
+    #   - 8000:8080
     tty: true
     command: "/go/src/api_gateway/launch.sh"
 
@@ -68,7 +70,7 @@ services:
     volumes:
       - ./backend/stream_subsystem:/go/src/stream_subsystem
     tty: true
-    command: "/go/src/stream_subsystem/launch.sh -i"
+    command: "/go/src/stream_subsystem/launch.sh"
 
   content_subsystem:
     build:
@@ -83,9 +85,24 @@ services:
     volumes:
       - ./backend/content_subsystem:/go/src/content_subsystem
     tty: true
-    command: "/go/src/content_subsystem/launch.sh -l -i"
+    command: "/go/src/content_subsystem/launch.sh -l"
   
-  # cdn:
+  cdn:
+    build:
+      context: ./containers
+      dockerfile: go_ffmpeg_dockerfile
+    container_name: cdn
+    # networks:
+    #   - frontend
+    environment:
+      - PORT=8080
+      - SECRET=secret
+    volumes:
+      - ./backend/content_subsystem:/go/src/content_subsystem
+    ports:
+      - 8888:8080
+    tty: true
+    command: "/go/src/content_subsystem/launch.sh -i -l"
 
   cache:
     image: redis:latest

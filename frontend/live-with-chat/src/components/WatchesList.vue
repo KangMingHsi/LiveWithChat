@@ -8,8 +8,8 @@
           <template v-slot:activator="{ on, attrs }">
             <div
               v-bind="attrs"
-              @contextmenu.stop="showAction($event, watch.ID, on)"
-              @click="to(watch.ID)"
+              @contextmenu.stop="showAction($event, on)"
+              @click="to(watch)"
             >
               <WatchCard :watch="watch" />
             </div>
@@ -101,10 +101,16 @@
           this.watches = data
         })
       },
-      to (id) {
-        this.$router.push('/watch/' + id)
+      to (watch) {
+        this.$store.dispatch('watch/setWatch', {
+          "description": watch.Description,
+          "title": watch.Title,
+          "id": watch.ID,
+        })
+
+        this.$router.push('/watch/' + watch.ID)
       },
-      showAction (event, id, on) {
+      showAction (event, on) {
         if (this.editable) {
           on.click(event)
           event.preventDefault()

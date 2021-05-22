@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/facebookgo/grace/gracehttp"
 	psql "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -37,6 +38,7 @@ func main() {
 		dbPassword = cmd.EnvString("DB_PASSWORD", defaultDBPassword)
 		dbName = cmd.EnvString("DB_NAME", defaultDBName)
 
+		workerCount 	  = flag.Int("worker", 3, "number of worker")
 		inmemory          = flag.Bool("inmem", false, "use in-memory repositories")
 		localContent      = flag.Bool("local", false, "use local storage")
 	)
@@ -45,18 +47,21 @@ func main() {
 	var (
 		videoDB content_subsystem.VideoRepository
 		videoStorage content_subsystem.VideoStorage
+		videoScheduler content_subsystem.VideoScheduler
+		videoProcessFunc content_subsystem.ProcessVideoFunc
 		// tokenManager stream_subsystem.TokenManager
 	)
 
-// 	tokenManager = jwt.NewTokenManager(secretKey)
+	// 	tokenManager = jwt.NewTokenManager(secretKey)
 
 	if *localContent {
 		path, err := os.Getwd()
 		if err != nil {
 			panic(err)
 		}
-		println("Current Path: " + path)
-		videoStorage = local.NewVideoStorage(fmt.Sprintf("%s/storage", path))
+		root := fmt.Sprintf("%s/storage", path)
+		videoProcessFunc = local.CreateProcessVideoFunc(root)
+		videoStorage = local.NewVideoStorage(root)
 	}
 
 	if *inmemory {
@@ -85,10 +90,26 @@ func main() {
 		videoDB = postgres.NewVideoRepository(client)
 	}
 
+	videoScheduler = local.NewVideoScheduler()
+	for i := 0; i < *workerCount; i++ {
+		channel := make(chan string)
+		go func() {
+			for {
+				videoScheduler.WorkerReady(channel)
+				vid := <-channel
+				err := videoProcessFunc(vid)
+				if err != nil {
+					continue
+				}
+			}
+		}()
+	}
+
 	var st content.Service
-	st = content.NewService(videoDB, videoStorage)
+	st = content.NewService(videoDB, videoStorage, videoScheduler)
 
 	srv := server.New(st)
+	srv.Host.Server.Addr = fmt.Sprintf(":%s", addr)
 	srv.Host.Logger.Fatal(
-		srv.Host.Start(fmt.Sprintf(":%s", addr)))
+		gracehttp.Serve(srv.Host.Server))
 }

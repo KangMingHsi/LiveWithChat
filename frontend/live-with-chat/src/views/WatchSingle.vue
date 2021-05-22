@@ -1,13 +1,18 @@
 <template>
   <v-container>
     <div class="video-section">
+      <video
+        class="video-player"
+        controls
+        type="application/x-mpegURL"
+        :src="src"
+      ></video>
     </div>
-    <v-row>
+    <v-row class="non-video">
       <v-col>
-        <p>TITLE</p>
-        <p>xxxx view</p>
+        <p>{{ title }}</p>
+        <p>{{ description }}</p>
         <v-divider></v-divider>
-        <p>dddddddddddddddddd</p>
       </v-col>
 
       <v-col>
@@ -18,14 +23,17 @@
           max-height="500"
         >
           <v-virtual-scroll
-            :items="watches"
+            :items="messages"
             :item-height="50"
             height="400"
           >
             <template v-slot:default="{ item }">
               <v-list-item>
+                <v-list-item-icon>
+                  <v-icon v-text="item.icon"></v-icon>
+                </v-list-item-icon>
                 <v-list-item-content>
-                  <v-list-item-title>{{ item.Title }}</v-list-item-title>
+                  <v-list-item-title>{{ item.name }} {{ item.msg }}</v-list-item-title>
                 </v-list-item-content>
               </v-list-item>
             </template>
@@ -61,57 +69,59 @@
         </v-card>
       </v-col>
     </v-row>
-
-    <div class="watch-single">
-      <section class="hero is-primary">
-        <div class="hero-body">
-          <div class="container">
-            <h1 class="title">
-              {{ watch.Title }}
-            </h1>
-            <h2 class="subtitle ">
-              {{ watch.Description }}
-            </h2>
-          </div>
-        </div>
-      </section>
-      <section class="watch-content">
-        <div class="container">
-          <p class="is-size-4 description">{{ watch.Description }}</p>
-          <p class="is-size-5"><strong>Location:</strong> {{ watch.Description }}</p>
-          <p class="is-size-5"><strong>Category:</strong> {{ watch.Description }}</p>
-          <div class="watch-images columns is-multiline has-text-centered">
-            <div v-for="image in watch.images" :key="image.id" class="column is-one-third">
-              <img :src="image" :alt="watch.name"/>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
   </v-container>
 </template>
 <script>
-  export default {
-    name: 'WatchSingle',
-    data() {
-      return {
-        message: "",
-        watch: {},
-      }
-    },
-    created() {
-      // const ID = Number(this.$route.params.id)
-      // let watch = this.watches.find(watch => watch.ID === ID)
-      // this.watch = watch
+export default {
+  name: 'WatchSingle',
+  data() {
+    return {
+      message: "",
+      watch: {},
+      messages: [
+        {
+          name: 'Sam',
+          msg: 'Hello',
+          icon: 'mdi-account-circle',
+        },
+        {
+          name: 'Sam',
+          msg: 'Hello',
+          icon: 'mdi-account-circle',
+        },
+        {
+          name: 'Sam',
+          msg: 'Hello',
+          icon: 'mdi-account-circle',
+        },
+        {
+          name: 'Sam',
+          msg: 'Hello',
+          icon: 'mdi-account-circle',
+        },
+      ],
+      id: "",
+      title: "",
+      description: "",
+      src: "",
     }
+  },
+  mounted() {
+    this.id = this.$route.params.id
+    this.title = this.$store.state.watch.title
+    this.description = this.$store.state.watch.description
+    this.src = "http://localhost:8888/static/" + this.id + "/playlist.m3u8"
   }
+}
 </script>
 <style lang="scss" scoped>
   .video-section {
     width: 100%;
     height: 480px;
   }
-
+  .non-video {
+    padding-top: 20%;
+  }
   .watch-single {
     margin-top: 30px;
   }

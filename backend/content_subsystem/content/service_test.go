@@ -12,7 +12,8 @@ func TestSave(t *testing.T) {
 	var (
 		videoDB mockVideoRepository
 		videoStorage mockVideoStorage
-		s = NewService(&videoDB, &videoStorage)
+		videoScheduler mockVideoScheduler
+		s = NewService(&videoDB, &videoStorage, &videoScheduler)
 	)
 
 	err := s.Save(fakeID, ".mp4", nil)
@@ -25,7 +26,8 @@ func TestGetContentInfo(t *testing.T) {
 	var (
 		videoDB mockVideoRepository
 		videoStorage mockVideoStorage
-		s = NewService(&videoDB, &videoStorage)
+		videoScheduler mockVideoScheduler
+		s = NewService(&videoDB, &videoStorage, &videoScheduler)
 	)
 
 	err := s.Save(fakeID, ".mp4", nil)
@@ -53,7 +55,8 @@ func TestDelete(t *testing.T) {
 	var (
 		videoDB mockVideoRepository
 		videoStorage mockVideoStorage
-		s = NewService(&videoDB, &videoStorage)
+		videoScheduler mockVideoScheduler
+		s = NewService(&videoDB, &videoStorage, &videoScheduler)
 	)
 
 	err := s.Save(fakeID, ".mp4", nil)
@@ -113,3 +116,11 @@ func (s *mockVideoStorage) GetContentInfo(id content_subsystem.VideoID) (map[str
 func (s *mockVideoStorage) Delete(id content_subsystem.VideoID) error {
 	return nil
 }
+
+type mockVideoScheduler struct {}
+
+func (s *mockVideoScheduler) Submit(id string) {}
+
+func (s *mockVideoScheduler) WorkerReady(w chan string) {}
+
+func (s *mockVideoScheduler) Run() {}
