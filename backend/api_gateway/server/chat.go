@@ -8,15 +8,15 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type StreamHandler struct {
+type ChatHandler struct {
 	authReq *http.Request
 	client *http.Client
 
 	accessibles map[string]bool
 }
 
-// StreamProcess middleware checks jwt token first
-func (h *StreamHandler) StreamProcess(next echo.HandlerFunc) echo.HandlerFunc {
+// ChatProcess middleware checks jwt token first
+func (h *ChatHandler) ChatProcess(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := c.Request()
 		query := fmt.Sprintf("%s%s", req.Method, req.URL.Path)
@@ -54,16 +54,16 @@ func (h *StreamHandler) StreamProcess(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func (h *StreamHandler) needAuthorization(query string) bool {
+func (h *ChatHandler) needAuthorization(query string) bool {
 	if v, ok := h.accessibles[query]; ok {
 		return v
 	}
 	return false
 }
 
-func NewStreamHandler(authURL *url.URL, accessibles map[string]bool) *StreamHandler {
+func NewChatHandler(authURL *url.URL, accessibles map[string]bool) *ChatHandler {
 	req, _ := http.NewRequest("POST", authURL.Path, nil)
-	return &StreamHandler{
+	return &ChatHandler{
 		authReq: req,
 		client: &http.Client{},
 		accessibles: accessibles,

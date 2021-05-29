@@ -14,6 +14,11 @@ type Server struct {
 	Host	*echo.Echo
 }
 
+type CheckInfo struct {
+	RoleLevel int        
+	UserID    string
+}
+
 // New returns a new echo server.
 func New(authURL, streamURL *url.URL) *Server {
 	s := &Server{}
@@ -29,7 +34,7 @@ func New(authURL, streamURL *url.URL) *Server {
 	streamProxy := httputil.NewSingleHostReverseProxy(streamURL)
 	v1Group := e.Group("/api/v1")
 
-	sh := NewStreamHandler(
+	streamHandler := NewStreamHandler(
 		&url.URL{
 			Path: fmt.Sprintf("%s://%s/api/auth/check", authURL.Scheme, authURL.Host),
 		},
@@ -41,8 +46,23 @@ func New(authURL, streamURL *url.URL) *Server {
 		},
 	)
 	v1Stream := v1Group.Group("/stream")
-	v1Stream.Use(sh.StreamProcess)
+	v1Stream.Use(streamHandler.StreamProcess)
 	v1Stream.Any("/*", echo.WrapHandler(streamProxy))
+
+	chatHandler := NewChatHandler(
+		&url.URL{
+			Path: fmt.Sprintf("%s://%s/api/auth/check", authURL.Scheme, authURL.Host),
+		},
+		map[string]bool{
+			"GET/api/v1/chat/messages": false,
+			"PATCH/api/v1/chat/messages": true,
+			"POST/api/v1/chat/messages": true,
+			"DELETE/api/v1/chat/messages": true,
+		},
+	)
+	v1Chat := v1Group.Group("/chat")
+	v1Chat.Use(chatHandler.ChatProcess)
+	v1Chat.Any("/*", echo.WrapHandler(streamProxy))
 
 	s.Host = e
 	return s

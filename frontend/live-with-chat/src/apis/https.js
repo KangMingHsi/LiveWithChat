@@ -12,15 +12,14 @@ async function errorHandle(status, msg, error) {
             alert(msg)
             var refresh = api.auth.refresh().then((resp) => {
                 let data = resp.data
-                store.dispatch('auth/setAuth', {
+                store.dispatch('auth/setToken', {
                     "token": data.token,
-                    "isLogin": true,
-                    "id": data.user_id,
                 })
             }).catch(() => {
                 store.dispatch('auth/setAuth', {
                     "token": "",
                     "isLogin": false,
+                    "id": "",
                 })
             })
             await refresh

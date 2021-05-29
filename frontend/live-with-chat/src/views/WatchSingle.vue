@@ -28,13 +28,31 @@
             height="400"
           >
             <template v-slot:default="{ item }">
-              <v-list-item>
+              <v-list-item
+                @mouseenter="hoverOn(item)"
+                @mouseleave="hoverOff(item)"
+              >
                 <v-list-item-icon>
-                  <v-icon v-text="item.icon"></v-icon>
+                  <v-icon>mdi-account-circle</v-icon>
                 </v-list-item-icon>
                 <v-list-item-content>
-                  <v-list-item-title>{{ item.name }} {{ item.msg }}</v-list-item-title>
+                  <v-list-item-title>
+                    {{ item.Name }} {{ item.Text }}
+                  </v-list-item-title>
                 </v-list-item-content>
+                <v-list-item-action v-show="isOwnMessage(item)">
+                  <UpdateMessageDialog
+                    :id="item.ID"
+                    :oldMessage="item.Text"
+                    @reload="getMessages"
+                  />
+                </v-list-item-action>
+                <v-list-item-action v-show="isOwnMessage(item)">
+                  <DeleteMessageDialog
+                    :id="item.ID"
+                    @reload="getMessages"
+                  />
+                </v-list-item-action>
               </v-list-item>
             </template>
           </v-virtual-scroll>
@@ -61,6 +79,7 @@
               <v-btn
                 icon
                 color="blue"
+                @click="sendMessage"
               >
                 <v-icon>mdi-send</v-icon>
               </v-btn>
@@ -72,34 +91,19 @@
   </v-container>
 </template>
 <script>
+import UpdateMessageDialog from '@/components/UpdateMessageDialog';
+import DeleteMessageDialog from '@/components/DeleteMessageDialog'
 export default {
   name: 'WatchSingle',
+  components: {
+    UpdateMessageDialog,
+    DeleteMessageDialog
+  },
   data() {
     return {
       message: "",
       watch: {},
-      messages: [
-        {
-          name: 'Sam',
-          msg: 'Hello',
-          icon: 'mdi-account-circle',
-        },
-        {
-          name: 'Sam',
-          msg: 'Hello',
-          icon: 'mdi-account-circle',
-        },
-        {
-          name: 'Sam',
-          msg: 'Hello',
-          icon: 'mdi-account-circle',
-        },
-        {
-          name: 'Sam',
-          msg: 'Hello',
-          icon: 'mdi-account-circle',
-        },
-      ],
+      messages: [],
       id: "",
       title: "",
       description: "",
@@ -110,8 +114,48 @@ export default {
     this.id = this.$route.params.id
     this.title = this.$store.state.watch.title
     this.description = this.$store.state.watch.description
+    this.messages = []
     this.src = "http://localhost:8888/static/" + this.id + "/playlist.m3u8"
-  }
+
+    this.getMessages()
+  },
+  methods: {
+    sendMessage() {
+      var sendForm = new FormData()
+      sendForm.append("text", this.message)
+      sendForm.append("vid", this.id)
+
+      this.$api.v1.chat.send(
+        sendForm
+      ).then(() => {
+        this.message = ""
+      })
+    },
+    isOwnMessage(item) {
+      return item.IsHover && item.OwnerID == this.$store.state.auth.id
+    },
+    hoverOn(item) {
+      item.IsHover = true
+    },
+    hoverOff(item) {
+      item.IsHover = false
+    },
+    getMessages() {
+      this.messages = []
+      this.$api.v1.chat.list({
+        vid: this.id
+      }).then((resp) => {
+        let data = resp.data
+        data.forEach(element => {
+          element.Name = 'Sam'
+          element.IsHover = false
+          this.messages.push(element)
+        });
+      }).catch((err) => {
+        console.log(err)
+      })
+    }
+  },
 }
 </script>
 <style lang="scss" scoped>
