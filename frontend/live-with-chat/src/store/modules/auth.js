@@ -11,6 +11,9 @@ export default {
             state.token = options.token
             state.isLogin = options.isLogin
         },
+        SET_TOKEN(state, options) {
+            state.token = options.token
+        }
     },
     actions: {
         setAuth(context, options) {
@@ -20,5 +23,10 @@ export default {
                 id: options.id,
             })
         },
+        setToken(context, options) {
+            context.commit('SET_AUTH', {
+                token: options.token,
+            })
+        }
     }
 }

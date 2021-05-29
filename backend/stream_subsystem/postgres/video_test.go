@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-func SetupEnv() (stream_subsystem.VideoRepository, func())  {
+func SetupVideoEnv() (stream_subsystem.VideoRepository, func())  {
 	dsn := fmt.Sprint(
 		"host=database_test user=livewithchat password=default",
 		" dbname=mock port=5432 sslmode=disable TimeZone=Asia/Taipei",
@@ -32,13 +32,13 @@ func SetupEnv() (stream_subsystem.VideoRepository, func())  {
 	}
 }
 
-func TestStore(t *testing.T) {
+func TestStoreVideo(t *testing.T) {
 	var(
 		v1 = stream_subsystem.Video{ID: stream_subsystem.VideoID("A")}
 		v2 = stream_subsystem.Video{ID: stream_subsystem.VideoID("B")}
 	)
 
-	r, close := SetupEnv()
+	r, close := SetupVideoEnv()
 	defer close()
 	err := r.Store(&v1)
 	if err != nil {
@@ -51,8 +51,8 @@ func TestStore(t *testing.T) {
 	}
 }
 
-func TestFind(t *testing.T) {
-	r, close := SetupEnv()
+func TestFindVideo(t *testing.T) {
+	r, close := SetupVideoEnv()
 	defer close()
 
 	dbVideo1, err := r.Find(stream_subsystem.VideoID("A"))
@@ -70,8 +70,8 @@ func TestFind(t *testing.T) {
 	}
 }
 
-func TestFindAll(t *testing.T) {
-	r, close := SetupEnv()
+func TestFindAllVideos(t *testing.T) {
+	r, close := SetupVideoEnv()
 	defer close()
 
 	dbVideos := r.FindAll(nil)
@@ -88,8 +88,8 @@ func TestFindAll(t *testing.T) {
 	}
 }
 
-func TestDelete(t *testing.T) {
-	r, close := SetupEnv()
+func TestDeleteVideo(t *testing.T) {
+	r, close := SetupVideoEnv()
 	defer close()
 
 	err := r.Delete(stream_subsystem.VideoID("A"))

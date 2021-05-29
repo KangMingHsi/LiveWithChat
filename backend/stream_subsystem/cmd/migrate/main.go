@@ -70,6 +70,15 @@ func main() {
 				return tx.Migrator().DropTable("videos")
 			},
 		},
+		{
+			ID: "202105281244",
+			Migrate: func(tx *gorm.DB) error {
+				return tx.AutoMigrate(&postgres.Message{})
+			},
+			Rollback: func(tx *gorm.DB) error {
+				return tx.Migrator().DropTable("messages")
+			},
+		},
 	})
 
 	if *upgradeTo != "" {

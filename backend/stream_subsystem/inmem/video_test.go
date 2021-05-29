@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestStore(t *testing.T) {
+func TestStoreVideo(t *testing.T) {
 	var(
 		v1 = stream_subsystem.Video{ID: stream_subsystem.VideoID("A")}
 		v2 = stream_subsystem.Video{ID: stream_subsystem.VideoID("B")}
@@ -23,7 +23,7 @@ func TestStore(t *testing.T) {
 	}
 }
 
-func TestFind(t *testing.T) {
+func TestFindVideo(t *testing.T) {
 	var(
 		v1 = stream_subsystem.Video{ID: stream_subsystem.VideoID("A")}
 		v2 = stream_subsystem.Video{ID: stream_subsystem.VideoID("B")}
@@ -49,7 +49,7 @@ func TestFind(t *testing.T) {
 }
 
 
-func TestFindAll(t *testing.T) {
+func TestFindAllVideos(t *testing.T) {
 	var(
 		v1 = stream_subsystem.Video{ID: stream_subsystem.VideoID("A")}
 		v2 = stream_subsystem.Video{ID: stream_subsystem.VideoID("B")}
@@ -73,7 +73,7 @@ func TestFindAll(t *testing.T) {
 	}
 }
 
-func TestDelete(t *testing.T) {
+func TestDeleteVideo(t *testing.T) {
 	var(
 		v1 = stream_subsystem.Video{ID: stream_subsystem.VideoID("A")}
 		v2 = stream_subsystem.Video{ID: stream_subsystem.VideoID("B")}

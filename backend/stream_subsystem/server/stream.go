@@ -109,7 +109,3 @@ func (h *streamHandler) deleteVideo(c echo.Context) error {
 	}
 	return c.String(http.StatusOK, "Video deletes successfully")
 }
-
-func toEchoHttpError(err error) *echo.HTTPError {
-	return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
-}

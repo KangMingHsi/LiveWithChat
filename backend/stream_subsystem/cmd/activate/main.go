@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"stream_subsystem"
+	"stream_subsystem/chat"
 	"stream_subsystem/cmd"
 	"stream_subsystem/inmem"
 	"stream_subsystem/internal"
@@ -49,6 +50,7 @@ func main() {
 	flag.Parse()
 
 	var (
+		messageDB stream_subsystem.MessageRepository
 		videoDB stream_subsystem.VideoRepository
 		contentController stream_subsystem.ContentController
 		tokenManager stream_subsystem.TokenManager
@@ -68,6 +70,7 @@ func main() {
 
 	if *inmemory {
 		videoDB = inmem.NewVideoRepository()
+		messageDB = inmem.NewMessageRepository()
 	} else {
 		dsn := fmt.Sprintf(
 			"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Taipei",
@@ -90,12 +93,16 @@ func main() {
 		}()
 
 		videoDB = postgres.NewVideoRepository(client)
+		messageDB = postgres.NewMessageRepository(client)
 	}
 
 	var st stream.Service
 	st = stream.NewService(videoDB, contentController)
 
-	srv := server.New(st, tokenManager)
+	var ch chat.Service
+	ch = chat.NewService(messageDB)
+
+	srv := server.New(ch, st, tokenManager)
 	srv.Host.Logger.Fatal(
 		srv.Host.Start(fmt.Sprintf(":%s", addr)))
 }
