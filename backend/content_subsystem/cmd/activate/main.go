@@ -25,6 +25,7 @@ const (
 	defaultDBPassword		 = "default"
 	defaultDBName			 = "livewithchat"
 	defaultDBPort			 = "5432"
+	defaultHlsScript		 = "/create-vod-hls.sh"
 )
 
 func main() {
@@ -37,6 +38,8 @@ func main() {
 		dbUser = cmd.EnvString("DB_USER", defaultDBUser)
 		dbPassword = cmd.EnvString("DB_PASSWORD", defaultDBPassword)
 		dbName = cmd.EnvString("DB_NAME", defaultDBName)
+
+		script = cmd.EnvString("HLS_SCRIPT", defaultHlsScript)
 
 		workerCount 	  = flag.Int("worker", 3, "number of worker")
 		inmemory          = flag.Bool("inmem", false, "use in-memory repositories")
@@ -60,7 +63,7 @@ func main() {
 			panic(err)
 		}
 		root := fmt.Sprintf("%s/storage", path)
-		videoProcessFunc = local.CreateProcessVideoFunc(root)
+		videoProcessFunc = local.CreateProcessVideoFunc(root, script)
 		videoStorage = local.NewVideoStorage(root)
 	}
 
@@ -91,14 +94,17 @@ func main() {
 	}
 
 	videoScheduler = local.NewVideoScheduler()
+	videoScheduler.Run()
 	for i := 0; i < *workerCount; i++ {
 		channel := make(chan string)
 		go func() {
 			for {
 				videoScheduler.WorkerReady(channel)
 				vid := <-channel
+				println("Start to process vid#" + vid)
 				err := videoProcessFunc(vid)
 				if err != nil {
+					println("Process vid#" + vid + ": " + err.Error())
 					continue
 				}
 			}

@@ -16,6 +16,7 @@ type contentController struct {
 }
 
 func (c *contentController) Save(id, contentType string, content interface{}) error {
+	println("Save video#" + id)
 	video, ok := content.(*multipart.FileHeader)
 	if !ok {
 		return errors.New("content's type is wrong")
@@ -60,6 +61,7 @@ func (c *contentController) Save(id, contentType string, content interface{}) er
 }
 
 func (c *contentController) GetContentInfo(id string) (map[string]interface{}, error) {
+	println("GetContentInfo video#" + id)
 	buf := new(bytes.Buffer)
     writer := multipart.NewWriter(buf)
 	err := writer.WriteField("vid", id)
@@ -90,6 +92,7 @@ func (c *contentController) GetContentInfo(id string) (map[string]interface{}, e
 }
 
 func (c *contentController) Delete(id string) error {
+	println("Delete video#" + id)
 	buf := new(bytes.Buffer)
     writer := multipart.NewWriter(buf)
 	err := writer.WriteField("vid", id)

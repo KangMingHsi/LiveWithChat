@@ -117,7 +117,7 @@ func NewVideoScheduler() content_subsystem.VideoScheduler {
 }
 
 // CreateProcessVideoFunc creates function transfers video to hls format
-func CreateProcessVideoFunc(root string) content_subsystem.ProcessVideoFunc {
+func CreateProcessVideoFunc(root, script string) content_subsystem.ProcessVideoFunc {
 	return func(vid string) error {
 		dirName := fmt.Sprintf("%s/%s", root, vid)
 		files, err := ioutil.ReadDir(dirName)
@@ -133,10 +133,14 @@ func CreateProcessVideoFunc(root string) content_subsystem.ProcessVideoFunc {
 			}
 		}
 
-		currentDir, _ := filepath.Abs("./")
+		if script == "" {
+			currentDir, _ := filepath.Abs("./")
+			script = currentDir + "/create-vod-hls.sh"
+		}
+		
 		cmd := exec.Command(
 			"bash",
-			currentDir + "/create-vod-hls.sh",
+			script,
 			videoName,
 			dirName,
 		)

@@ -1,0 +1,37 @@
+version: "3"
+
+services:
+  stream_subsystem:
+    image: golang:latest 
+    container_name: stream_service
+    networks:
+      - backend
+      - local
+    environment:
+      - PORT=8080
+      - SECRET=secret
+    volumes:
+      - ./:/go/src/stream_subsystem
+    depends_on:
+      - database
+    tty: true
+    command: bash -c "/go/src/stream_subsystem/launch.sh -m && /go/src/stream_subsystem/launch.sh"
+
+  database:
+    image: postgres:latest
+    networks:
+      - local
+    environment:
+      POSTGRES_USER: livewithchat
+      POSTGRES_PASSWORD: default
+      POSTGRES_DB: livewithchat
+    volumes:
+      - database-data:/var/lib/postgresql/data/
+
+networks:
+  local:
+  backend:
+    external:
+      name: livewithchat_backend
+volumes:
+  database-data:

@@ -1,0 +1,21 @@
+version: "3"
+
+services:
+  gateway:
+    image: golang:latest
+    container_name: api_gateway
+    networks:
+      - frontend
+      - backend
+    environment:
+      - PORT=8080
+    volumes:
+      - ./:/go/src/api_gateway
+    tty: true
+    command: "/go/src/api_gateway/launch.sh"
+
+networks:
+  frontend:
+    name: livewithchat_frontend
+  backend:
+    name: livewithchat_backend

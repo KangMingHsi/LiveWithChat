@@ -27,73 +27,14 @@ services:
     ports:
       - 8000:8080
     tty: true
-
-  gateway:
-    image: golang:latest
-    container_name: api_gateway
-    networks:
-      - frontend
-      - backend
-    environment:
-      - PORT=8080
-    volumes:
-      - ./backend/api_gateway:/go/src/api_gateway
-    # ports:
-    #   - 8000:8080
-    tty: true
-    command: "/go/src/api_gateway/launch.sh"
-
-  auth_subsystem:
-    image: golang:latest
-    container_name: auth_service
-    networks:
-      - backend
-    environment:
-      - PORT=8080
-      - SECRET=secret
-      - TOKEN_DURATION=300
-    volumes:
-      - ./backend/auth_subsystem:/go/src/auth_subsystem
-    tty: true
-    command: "/go/src/auth_subsystem/launch.sh"
-  
-  stream_subsystem:
-    build:
-      context: ./containers
-      dockerfile: go_ffmpeg_dockerfile
-    container_name: stream_service
-    networks:
-      - backend
-    environment:
-      - PORT=8080
-      - SECRET=secret
-    volumes:
-      - ./backend/stream_subsystem:/go/src/stream_subsystem
-    tty: true
-    command: "/go/src/stream_subsystem/launch.sh"
-
-  content_subsystem:
-    build:
-      context: ./containers
-      dockerfile: go_ffmpeg_dockerfile
-    container_name: content_service
-    networks:
-      - backend
-    environment:
-      - PORT=8080
-      - SECRET=secret
-    volumes:
-      - ./backend/content_subsystem:/go/src/content_subsystem
-    tty: true
-    command: "/go/src/content_subsystem/launch.sh -l"
   
   cdn:
     build:
       context: ./containers
       dockerfile: go_ffmpeg_dockerfile
     container_name: cdn
-    # networks:
-    #   - frontend
+    networks:
+      - frontend
     environment:
       - PORT=8080
       - SECRET=secret
@@ -110,18 +51,6 @@ services:
     networks:
       - backend
 
-  database:
-    image: postgres:latest
-    container_name: relation_db_server
-    networks:
-      - backend
-    environment:
-      POSTGRES_USER: livewithchat
-      POSTGRES_PASSWORD: default
-      POSTGRES_DB: livewithchat
-    volumes:
-      - database-data:/var/lib/postgresql/data/
-
   database_test:
     image: postgres:latest
     container_name: relation_db_test_server
@@ -134,21 +63,24 @@ services:
     volumes:
       - database-data-test:/var/lib/postgresql/data/
 
-  pgadmin:
-    container_name: pgadmin4_container
-    image: dpage/pgadmin4
-    restart: always
-    networks:
-      - backend
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: root
-    ports:
-      - "5050:80"
+  # pgadmin:
+  #   container_name: pgadmin4_container
+  #   image: dpage/pgadmin4
+  #   restart: always
+  #   networks:
+  #     - backend
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: admin@admin.com
+  #     PGADMIN_DEFAULT_PASSWORD: root
+  #   ports:
+  #     - "5050:80"
 
 networks:
   frontend:
+    external:
+      name: livewithchat_frontend
   backend:
+    external:
+      name: livewithchat_backend
 volumes:
-  database-data:
   database-data-test:

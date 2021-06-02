@@ -12,6 +12,7 @@ function usage() {
     echo "-h     Print this Help."
     echo "-i     Launch db in memory"
     echo "-m     Migrate database first"
+    echo "-l     Process in local"
     echo
 }
 
