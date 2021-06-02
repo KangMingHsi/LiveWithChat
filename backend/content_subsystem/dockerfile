@@ -1,0 +1,4 @@
+FROM golang:latest
+
+RUN apt-get update && \
+    apt-get install -y ffmpeg x264 x265 bc

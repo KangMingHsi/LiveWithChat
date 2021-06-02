@@ -11,3 +11,11 @@ test-without-io: clean
 .PHONY: clean
 clean:
 	go clean
+
+.PHONY: service-up
+service-up:
+	docker-compose up -d
+
+.PHONY: service-down
+service-down:
+	docker-compose down

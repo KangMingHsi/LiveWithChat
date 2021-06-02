@@ -115,7 +115,7 @@ export default {
     this.title = this.$store.state.watch.title
     this.description = this.$store.state.watch.description
     this.messages = []
-    this.src = "http://localhost:8888/static/" + this.id + "/playlist.m3u8"
+    this.src = "/static/" + this.id + "/playlist.m3u8"
 
     this.getMessages()
   },

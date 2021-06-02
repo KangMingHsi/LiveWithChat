@@ -50,9 +50,8 @@ func (s *service) UploadVideo(
 
 	v := stream_subsystem.NewVideo(
 		vid, title, description, ownerID, videoType, time.Duration(float64(time.Second) * duration))
-	err = s.videoDB.Store(v)
 
-	return err
+	return s.videoDB.Store(v)
 }
 
 func (s *service) UpdateVideo(vid, uid string, data map[string]interface{}) error {

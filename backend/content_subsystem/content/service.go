@@ -31,11 +31,11 @@ func (s *service) Save(id, contentType string, content interface{}) error {
 	err = s.videoDB.Store(v)
 	if err != nil {
 		s.videoStorage.Delete(vid)
+		return err
 	}
 
 	s.videoScheduler.Submit(id)
-
-	return err
+	return nil
 }
 
 func (s *service) GetContentInfo(id string) (map[string]interface{}, error) {

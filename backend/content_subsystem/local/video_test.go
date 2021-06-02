@@ -70,7 +70,7 @@ func TestGetContentInfo(t *testing.T) {
 }
 
 func TestTransferToHLS(t *testing.T) {
-	handleFunc := CreateProcessVideoFunc(root)
+	handleFunc := CreateProcessVideoFunc(root, "")
 	err := handleFunc(string(fakeID))
 	if err != nil {
 		t.Errorf("%v", err)

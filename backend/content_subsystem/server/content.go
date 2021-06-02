@@ -46,7 +46,7 @@ func (h *contentHandler) saveVideo(c echo.Context) error {
 }
 
 func (h *contentHandler) deleteVideo(c echo.Context) error {
-	vid := c.Param("id")
+	vid := c.FormValue("vid")
 	err := h.s.Delete(vid)
 	if err != nil {
 		return toEchoHttpError(err)
@@ -56,5 +56,6 @@ func (h *contentHandler) deleteVideo(c echo.Context) error {
 }
 
 func toEchoHttpError(err error) *echo.HTTPError {
+	println(err.Error())
 	return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 }

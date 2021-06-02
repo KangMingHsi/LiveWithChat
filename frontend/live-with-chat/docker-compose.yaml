@@ -1,0 +1,19 @@
+version: "3"
+
+services:
+  web:
+    build:
+      context: ./
+      dockerfile: dockerfile
+    container_name: web_server
+    restart: always
+    networks:
+      - frontend
+    ports:
+      - 80:80
+    tty: true
+
+networks:
+  frontend:
+    external:
+      name: livewithchat_frontend

@@ -1,0 +1,44 @@
+version: "3"
+
+services:
+  content_subsystem:
+    build:
+      context: ./
+      dockerfile: dockerfile
+    container_name: content_service
+    networks:
+      - backend
+      - local
+      - frontend
+    depends_on:
+      - database
+    environment:
+      - PORT=8080
+      - SECRET=secret
+      - HLS_SCRIPT=/go/src/content_subsystem/local/create-vod-hls.sh
+    volumes:
+      - ./:/go/src/content_subsystem
+    tty: true
+    command: bash -c "/go/src/content_subsystem/launch.sh -m && /go/src/content_subsystem/launch.sh -l"
+
+  database:
+    image: postgres:latest
+    networks:
+      - local
+    environment:
+      POSTGRES_USER: livewithchat
+      POSTGRES_PASSWORD: default
+      POSTGRES_DB: livewithchat
+    volumes:
+      - database-data:/var/lib/postgresql/data/
+
+networks:
+  local:
+  backend:
+    external:
+      name: livewithchat_backend
+  frontend:
+    external:
+      name: livewithchat_frontend
+volumes:
+  database-data:
