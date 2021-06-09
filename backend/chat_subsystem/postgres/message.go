@@ -1,8 +1,8 @@
 package postgres
 
 import (
+	"chat_subsystem"
 	"fmt"
-	"stream_subsystem"
 	"time"
 
 	"gorm.io/gorm"
@@ -18,7 +18,7 @@ type Message struct {
 	IsValid bool    `gorm:"default:true"`
 }
 
-func toMessageDB(m *stream_subsystem.Message) *Message {
+func toMessageDB(m *chat_subsystem.Message) *Message {
 	return &Message{
 		ID: int64(m.ID),
 		VideoID: m.VideoID,
@@ -29,9 +29,9 @@ func toMessageDB(m *stream_subsystem.Message) *Message {
 	}
 }
 
-func toMessageModel(m *Message) *stream_subsystem.Message {
-	return &stream_subsystem.Message{
-		ID: stream_subsystem.MessageID(m.ID),
+func toMessageModel(m *Message) *chat_subsystem.Message {
+	return &chat_subsystem.Message{
+		ID: chat_subsystem.MessageID(m.ID),
 		VideoID: m.VideoID,
 		Text: m.Text,
 		CreatedAt: m.CreatedAt,
@@ -43,7 +43,7 @@ type messageRepository struct {
 	db *gorm.DB
 }
 
-func (r *messageRepository) Store(v *stream_subsystem.Message) error {
+func (r *messageRepository) Store(v *chat_subsystem.Message) error {
 	result := r.db.Model(&Message{}).Clauses(clause.OnConflict{
 		UpdateAll: true,
 	}).Create(toMessageDB(v))
@@ -51,31 +51,31 @@ func (r *messageRepository) Store(v *stream_subsystem.Message) error {
 	return result.Error
 }
 
-func (r *messageRepository) Find(id stream_subsystem.MessageID) (*stream_subsystem.Message, error) {
+func (r *messageRepository) Find(id chat_subsystem.MessageID) (*chat_subsystem.Message, error) {
 	var vRow *Message
 
 	result := r.db.Model(&Message{}).First(&vRow, "id = ? AND is_valid = ?", int64(id), true)
 	if result.Error != nil {
-		return nil, stream_subsystem.ErrUnknownMessage
+		return nil, chat_subsystem.ErrUnknownMessage
 	}
 
 	return toMessageModel(vRow), nil
 }
 
-func (r *messageRepository) FindAll(conditions map[string]interface{}) []*stream_subsystem.Message {
+func (r *messageRepository) FindAll(conditions map[string]interface{}) []*chat_subsystem.Message {
 	vRows := []*Message{}
 	query := r.db.Model(&Message{}).Where("is_valid = ?", true)
 	if conditions != nil && len(conditions) > 0 {
 		for key, condVal := range conditions {
 			query = query.Where(
-				fmt.Sprintf("%s = ?", stream_subsystem.Underscore(key)),
+				fmt.Sprintf("%s = ?", chat_subsystem.Underscore(key)),
 				condVal,
 			)
 		}	
 	}
 	query.Find(&vRows)
 
-	vs := make([]*stream_subsystem.Message, len(vRows))
+	vs := make([]*chat_subsystem.Message, len(vRows))
 	for index, vRow := range vRows {
 		vs[index] = toMessageModel(vRow)
 	}
@@ -83,7 +83,7 @@ func (r *messageRepository) FindAll(conditions map[string]interface{}) []*stream
 	return vs
 }
 
-func (r *messageRepository) Delete(id stream_subsystem.MessageID) error {
+func (r *messageRepository) Delete(id chat_subsystem.MessageID) error {
 	result := r.db.Model(
 		&Message{}).Where(
 			"id = ? AND is_valid = ?", int64(id), true).Update(
@@ -94,7 +94,7 @@ func (r *messageRepository) Delete(id stream_subsystem.MessageID) error {
 }
 
 // NewMessageRepository returns a new instance of a postgres message repository.
-func NewMessageRepository (client *gorm.DB) stream_subsystem.MessageRepository {
+func NewMessageRepository (client *gorm.DB) chat_subsystem.MessageRepository {
 	r := &messageRepository{}
 	r.db = client.Session(&gorm.Session{NewDB: true})
 	return r

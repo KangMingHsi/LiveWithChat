@@ -3,7 +3,7 @@ package chat
 import (
 	"testing"
 
-	"stream_subsystem"
+	"chat_subsystem"
 )
 
 var (
@@ -13,7 +13,7 @@ var (
 func TestCreateMessage(t *testing.T) {
 	var (
 		service = NewService(&messageDB)
-		id = stream_subsystem.MessageID(0)
+		id = chat_subsystem.MessageID(0)
 		text = "hello"
 		videoID = "0"
 		ownerID = "0"
@@ -39,7 +39,7 @@ func TestCreateMessage(t *testing.T) {
 func TestUpdateMessage(t *testing.T) {
 	var (
 		service = NewService(&messageDB)
-		id = stream_subsystem.MessageID(0)
+		id = chat_subsystem.MessageID(0)
 		text = "hello"
 		nextText = "world"
 		videoID = "0"
@@ -77,7 +77,7 @@ func TestUpdateMessage(t *testing.T) {
 func TestListMessage(t *testing.T) {
 	var (
 		service = NewService(&messageDB)
-		id = stream_subsystem.MessageID(0)
+		id = chat_subsystem.MessageID(0)
 		nextText = "world"
 		videoID = "0"
 		ownerID = "0"
@@ -99,7 +99,7 @@ func TestListMessage(t *testing.T) {
 func TestDeleteMessage(t *testing.T) {
 	var (
 		service = NewService(&messageDB)
-		id = stream_subsystem.MessageID(0)
+		id = chat_subsystem.MessageID(0)
 		ownerID = "0"
 	)
 
@@ -115,32 +115,32 @@ func TestDeleteMessage(t *testing.T) {
 }
 
 type mockMessageRepository struct {
-	message *stream_subsystem.Message
+	message *chat_subsystem.Message
 }
 
-func (r *mockMessageRepository) Store(message *stream_subsystem.Message) error {
+func (r *mockMessageRepository) Store(message *chat_subsystem.Message) error {
 	r.message = message
 	return nil
 }
 
-func (r *mockMessageRepository) Find(id stream_subsystem.MessageID) (*stream_subsystem.Message, error) {
+func (r *mockMessageRepository) Find(id chat_subsystem.MessageID) (*chat_subsystem.Message, error) {
 	if r.message == nil {
-		return nil, stream_subsystem.ErrUnknownMessage
+		return nil, chat_subsystem.ErrUnknownMessage
 	}
 	return r.message, nil
 }
 
-func (r *mockMessageRepository) FindAll(map[string]interface{}) []*stream_subsystem.Message {
+func (r *mockMessageRepository) FindAll(map[string]interface{}) []*chat_subsystem.Message {
 	if r.message == nil {
-		return []*stream_subsystem.Message{}
+		return []*chat_subsystem.Message{}
 	}
 
-	return []*stream_subsystem.Message{
+	return []*chat_subsystem.Message{
 		r.message,
 	}
 }
 
-func (r *mockMessageRepository) Delete(id stream_subsystem.MessageID) error {
+func (r *mockMessageRepository) Delete(id chat_subsystem.MessageID) error {
 	r.message = nil
 	return nil
 }

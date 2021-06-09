@@ -1,11 +1,11 @@
 package main
 
 import (
+	"chat_subsystem/cmd"
+	"chat_subsystem/postgres"
 	"flag"
 	"fmt"
 	"log"
-	"stream_subsystem/cmd"
-	"stream_subsystem/postgres"
 
 	"github.com/go-gormigrate/gormigrate/v2"
 	psql "gorm.io/driver/postgres"
@@ -62,12 +62,12 @@ func main() {
 	}()
 	m := gormigrate.New(client, gormigrate.DefaultOptions, []*gormigrate.Migration{
 		{
-			ID: "202104141236",
+			ID: "202105281244",
 			Migrate: func(tx *gorm.DB) error {
-				return tx.AutoMigrate(&postgres.Video{})
+				return tx.AutoMigrate(&postgres.Message{})
 			},
 			Rollback: func(tx *gorm.DB) error {
-				return tx.Migrator().DropTable("videos")
+				return tx.Migrator().DropTable("messages")
 			},
 		},
 	})

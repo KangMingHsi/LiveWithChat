@@ -1,4 +1,4 @@
-package stream_subsystem
+package chat_subsystem
 
 import (
 	"errors"
@@ -79,3 +79,5 @@ type MessageRepository interface {
 
 // ErrUnknownMessage is used when a message could not be found.
 var ErrUnknownMessage = errors.New("unknown message")
+// ErrNoAuthority is used when do something to a message that you cannot.
+var ErrNoAuthorityMessage = errors.New("no authority to this chat")

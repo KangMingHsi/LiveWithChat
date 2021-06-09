@@ -1,4 +1,4 @@
-package stream_subsystem
+package chat_subsystem
 
 import "testing"
 

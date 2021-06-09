@@ -16,6 +16,9 @@ const (
 
 	defaultStreamHost		 = "stream_subsystem"
 	defaultStreamPort		 = "8080"
+
+	defaultChatHost		 = "chat_subsystem"
+	defaultChatPort		 = "8080"
 )
 
 func main() {
@@ -27,6 +30,9 @@ func main() {
 
 		streamHost = envString("STREAM_HOST", defaultStreamHost)
 		streamPort = envString("STREAM_PORT", defaultStreamPort)
+
+		chatHost = envString("CHAT_HOST", defaultChatHost)
+		chatPort = envString("CHAT_PORT", defaultChatPort)
 	)
 	
 	authURL := &url.URL{
@@ -38,8 +44,13 @@ func main() {
 		Scheme: "http",
 		Host:   fmt.Sprintf("%s:%s", streamHost, streamPort),
 	}
+
+	chatURL := &url.URL{
+		Scheme: "http",
+		Host:   fmt.Sprintf("%s:%s", chatHost, chatPort),
+	}
 	
-	srv := server.New(authURL, streamURL)
+	srv := server.New(authURL, streamURL, chatURL)
 	srv.Host.Logger.Fatal(
 		srv.Host.Start(fmt.Sprintf(":%s", addr)))
 }
