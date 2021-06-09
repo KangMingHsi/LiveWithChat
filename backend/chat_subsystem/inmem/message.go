@@ -1,35 +1,35 @@
 package inmem
 
 import (
-	"stream_subsystem"
+	"chat_subsystem"
 	"sync"
 )
 
 type messageRepository struct {
 	mtx    sync.RWMutex
-	messages map[stream_subsystem.MessageID]*stream_subsystem.Message
+	messages map[chat_subsystem.MessageID]*chat_subsystem.Message
 }
 
-func (r *messageRepository) Store(message *stream_subsystem.Message) error {
+func (r *messageRepository) Store(message *chat_subsystem.Message) error {
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
 	r.messages[message.ID] = message
 	return nil
 }
 
-func (r *messageRepository) Find(id stream_subsystem.MessageID) (*stream_subsystem.Message, error) {
+func (r *messageRepository) Find(id chat_subsystem.MessageID) (*chat_subsystem.Message, error) {
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
 	if val, ok := r.messages[id]; ok {
 		return val, nil
 	}
-	return nil, stream_subsystem.ErrUnknownMessage
+	return nil, chat_subsystem.ErrUnknownMessage
 }
 
-func (r *messageRepository) FindAll(conditions map[string]interface{}) []*stream_subsystem.Message {
+func (r *messageRepository) FindAll(conditions map[string]interface{}) []*chat_subsystem.Message {
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
-	messages := []*stream_subsystem.Message{}
+	messages := []*chat_subsystem.Message{}
 	if conditions == nil || len(conditions) == 0 {
 		for _, val := range r.messages {
 			messages = append(messages, val)
@@ -47,7 +47,7 @@ func (r *messageRepository) FindAll(conditions map[string]interface{}) []*stream
 	return messages
 }
 
-func (r *messageRepository) Delete(id stream_subsystem.MessageID) error {
+func (r *messageRepository) Delete(id chat_subsystem.MessageID) error {
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
 	delete(r.messages, id)
@@ -55,8 +55,8 @@ func (r *messageRepository) Delete(id stream_subsystem.MessageID) error {
 }
 
 // NewMessageRepository returns a new instance of a in-memory message repository.
-func NewMessageRepository () stream_subsystem.MessageRepository {
+func NewMessageRepository () chat_subsystem.MessageRepository {
 	return &messageRepository{
-		messages: make(map[stream_subsystem.MessageID]*stream_subsystem.Message),
+		messages: make(map[chat_subsystem.MessageID]*chat_subsystem.Message),
 	}
 }

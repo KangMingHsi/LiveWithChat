@@ -1,8 +1,8 @@
 package postgres
 
 import (
+	"chat_subsystem"
 	"fmt"
-	"stream_subsystem"
 	"testing"
 
 	psql "gorm.io/driver/postgres"
@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-func SetupMessageEnv() (stream_subsystem.MessageRepository, func())  {
+func SetupMessageEnv() (chat_subsystem.MessageRepository, func())  {
 	dsn := fmt.Sprint(
 		"host=database_test user=livewithchat password=default",
 		" dbname=mock port=5432 sslmode=disable TimeZone=Asia/Taipei",
@@ -34,8 +34,8 @@ func SetupMessageEnv() (stream_subsystem.MessageRepository, func())  {
 
 func TestStoreMessage(t *testing.T) {
 	var(
-		v1 = stream_subsystem.Message{ID: stream_subsystem.MessageID(0)}
-		v2 = stream_subsystem.Message{ID: stream_subsystem.MessageID(1)}
+		v1 = chat_subsystem.Message{ID: chat_subsystem.MessageID(0)}
+		v2 = chat_subsystem.Message{ID: chat_subsystem.MessageID(1)}
 	)
 
 	r, close := SetupMessageEnv()
@@ -55,16 +55,16 @@ func TestFindMessage(t *testing.T) {
 	r, close := SetupMessageEnv()
 	defer close()
 
-	dbVideo1, err := r.Find(stream_subsystem.MessageID(0))
+	dbVideo1, err := r.Find(chat_subsystem.MessageID(0))
 	if err != nil {
 		t.Error(err)
 	}
 
-	if dbVideo1.ID != stream_subsystem.MessageID(0) {
+	if dbVideo1.ID != chat_subsystem.MessageID(0) {
 		t.Errorf("ID should be the same")
 	}
 
-	_, err = r.Find(stream_subsystem.MessageID(2))
+	_, err = r.Find(chat_subsystem.MessageID(2))
 	if err == nil {
 		t.Errorf("Shouldn't find any user")
 	}
@@ -80,7 +80,7 @@ func TestFindAllMessages(t *testing.T) {
 	}
 
 	dbMessages = r.FindAll(map[string]interface{}{
-		"id": stream_subsystem.MessageID(0),
+		"id": chat_subsystem.MessageID(0),
 	})
 
 	if len(dbMessages) != 1 {
@@ -92,12 +92,12 @@ func TestDeleteMessage(t *testing.T) {
 	r, close := SetupMessageEnv()
 	defer close()
 
-	err := r.Delete(stream_subsystem.MessageID(0))
+	err := r.Delete(chat_subsystem.MessageID(0))
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = r.Delete(stream_subsystem.MessageID(1))
+	err = r.Delete(chat_subsystem.MessageID(1))
 	if err != nil {
 		t.Error(err)
 	}

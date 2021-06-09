@@ -1,10 +1,10 @@
 package server
 
 import (
+	"chat_subsystem"
+	"chat_subsystem/chat"
 	"net/http"
 	"strconv"
-	"stream_subsystem"
-	"stream_subsystem/chat"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -12,7 +12,7 @@ import (
 
 type chatHandler struct {
 	s  chat.Service
-	tokenManager  stream_subsystem.TokenManager
+	tokenManager  chat_subsystem.TokenManager
 }
 
 func (h *chatHandler) addGroup(e *echo.Group) {

@@ -1,13 +1,13 @@
 package chat
 
 import (
-	"stream_subsystem"
+	"chat_subsystem"
 )
 
 // Service is the interface that provides chat methods.
 type Service interface {
 	// Get all messages stored on server
-	GetMessages(vid string) []*stream_subsystem.Message
+	GetMessages(vid string) []*chat_subsystem.Message
 	// Create message to server
 	CreateMessage(text, videoID, ownerID string) error
 	// Update message information
@@ -17,11 +17,11 @@ type Service interface {
 }
 
 type service struct {
-	messageDB stream_subsystem.MessageRepository
-	factory *stream_subsystem.MessageFactory
+	messageDB chat_subsystem.MessageRepository
+	factory *chat_subsystem.MessageFactory
 }
 
-func (s *service) GetMessages(vid string) []*stream_subsystem.Message {
+func (s *service) GetMessages(vid string) []*chat_subsystem.Message {
 	return s.messageDB.FindAll(map[string]interface{}{
 		"video_id": vid,
 	})
@@ -34,13 +34,13 @@ func (s *service) CreateMessage(text, videoID, ownerID string) error {
 }
 
 func (s *service) UpdateMessage(id int64, text, uid string) error {
-	msg, err := s.messageDB.Find(stream_subsystem.MessageID(id))
+	msg, err := s.messageDB.Find(chat_subsystem.MessageID(id))
 	if err != nil {
 		return err
 	}
 
 	if msg.OwnerID != uid {
-		return stream_subsystem.ErrNoAuthority
+		return chat_subsystem.ErrNoAuthorityMessage
 	}
 
 	msg.Text = text
@@ -48,24 +48,24 @@ func (s *service) UpdateMessage(id int64, text, uid string) error {
 }
 
 func (s *service) DeleteMessage(id int64, uid string) error {
-	msg, err := s.messageDB.Find(stream_subsystem.MessageID(id))
+	msg, err := s.messageDB.Find(chat_subsystem.MessageID(id))
 	if err != nil {
 		return err
 	}
 
 	if msg.OwnerID != uid {
-		return stream_subsystem.ErrNoAuthority
+		return chat_subsystem.ErrNoAuthorityMessage
 	}
 
-	return s.messageDB.Delete(stream_subsystem.MessageID(id))
+	return s.messageDB.Delete(chat_subsystem.MessageID(id))
 }
 
 func NewService(
-	messageDB stream_subsystem.MessageRepository,
+	messageDB chat_subsystem.MessageRepository,
 ) Service{
 	messages := messageDB.FindAll(nil)
 	return &service{
 		messageDB: messageDB,
-		factory: stream_subsystem.NewMessageFactory(int64(len(messages))),
+		factory: chat_subsystem.NewMessageFactory(int64(len(messages))),
 	}
 }

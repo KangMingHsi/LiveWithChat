@@ -1,18 +1,15 @@
 package main
 
 import (
+	"chat_subsystem"
+	"chat_subsystem/chat"
+	"chat_subsystem/cmd"
+	"chat_subsystem/inmem"
+	"chat_subsystem/jwt"
+	"chat_subsystem/postgres"
+	"chat_subsystem/server"
 	"flag"
 	"fmt"
-	"os"
-	"stream_subsystem"
-	"stream_subsystem/cmd"
-	"stream_subsystem/inmem"
-	"stream_subsystem/internal"
-	"stream_subsystem/jwt"
-	"stream_subsystem/local"
-	"stream_subsystem/postgres"
-	"stream_subsystem/server"
-	"stream_subsystem/stream"
 
 	psql "gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -26,8 +23,6 @@ const (
 	defaultDBPassword		 = "default"
 	defaultDBName			 = "livewithchat"
 	defaultDBPort			 = "5432"
-
-	defaultContentUrl		 = "http://content_subsystem:8080/api/v1/content/videos"
 )
 
 func main() {
@@ -41,33 +36,19 @@ func main() {
 		dbPassword = cmd.EnvString("DB_PASSWORD", defaultDBPassword)
 		dbName = cmd.EnvString("DB_NAME", defaultDBName)
 
-		contentUrl		  = cmd.EnvString("CONTENT_URL", defaultContentUrl)
-
 		inmemory          = flag.Bool("inmem", false, "use in-memory repositories")
-		localContent      = flag.Bool("local", false, "use local storage")
 	)
 	flag.Parse()
 
 	var (
-		videoDB stream_subsystem.VideoRepository
-		contentController stream_subsystem.ContentController
-		tokenManager stream_subsystem.TokenManager
+		messageDB chat_subsystem.MessageRepository
+		tokenManager chat_subsystem.TokenManager
 	)
 
 	tokenManager = jwt.NewTokenManager(secretKey)
 
-	if *localContent {
-		path, err := os.Getwd()
-		if err != nil {
-			panic(err)
-		}
-		contentController = local.NewContentController(fmt.Sprintf("%s/storage", path))
-	} else {
-		contentController = internal.NewContentController(contentUrl)
-	}
-
 	if *inmemory {
-		videoDB = inmem.NewVideoRepository()
+		messageDB = inmem.NewMessageRepository()
 	} else {
 		dsn := fmt.Sprintf(
 			"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Taipei",
@@ -89,13 +70,13 @@ func main() {
 			db.Close()
 		}()
 
-		videoDB = postgres.NewVideoRepository(client)
+		messageDB = postgres.NewMessageRepository(client)
 	}
 
-	var st stream.Service
-	st = stream.NewService(videoDB, contentController)
+	var ch chat.Service
+	ch = chat.NewService(messageDB)
 
-	srv := server.New(st, tokenManager)
+	srv := server.New(ch, tokenManager)
 	srv.Host.Logger.Fatal(
 		srv.Host.Start(fmt.Sprintf(":%s", addr)))
 }

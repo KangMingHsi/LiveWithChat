@@ -1,9 +1,9 @@
 package server
 
 import (
+	"chat_subsystem"
+	"chat_subsystem/chat"
 	"net/http"
-	"stream_subsystem"
-	"stream_subsystem/stream"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -11,28 +11,28 @@ import (
 
 // Server holds the dependencies for a echo server.
 type Server struct {
-	Stream  stream.Service
+	Chat	chat.Service
 	Host	*echo.Echo
 }
 
 // New returns a new echo server.
 func New(
-	streamService stream.Service,
-	tokenManager stream_subsystem.TokenManager,
+	chatService   chat.Service,
+	tokenManager chat_subsystem.TokenManager,
 ) *Server {
 	s := &Server{
-		Stream:  streamService,
+		Chat: chatService,
 	}
 
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	apiG := e.Group("/api")
-	streamH := streamHandler{
-		s: streamService,
+	chatH := chatHandler{
+		s: chatService,
 		tokenManager: tokenManager,
 	}
-	streamH.addGroup(apiG)
+	chatH.addGroup(apiG)
 
 	s.Host = e
 	return s

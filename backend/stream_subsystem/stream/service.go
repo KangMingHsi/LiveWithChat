@@ -61,7 +61,7 @@ func (s *service) UpdateVideo(vid, uid string, data map[string]interface{}) erro
 	}
 
 	if v.OwnerID != uid {
-		return stream_subsystem.ErrNoAuthority
+		return stream_subsystem.ErrNoAuthorityVideo
 	}
 
 	newV := v.ConvertFromMap(data)
@@ -77,7 +77,7 @@ func (s *service) DeleteVideo(
 	}
 
 	if v.OwnerID != uid {
-		return stream_subsystem.ErrNoAuthority
+		return stream_subsystem.ErrNoAuthorityVideo
 	}
 
 	err = s.contentController.Delete(vid)
